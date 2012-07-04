@@ -9,11 +9,13 @@ import java.util.Random;
 
 import org.apache.log4j.Logger;
 
+import br.ufla.dcc.event.wuc.BroadcastDistanceFromCenter;
 import br.ufla.dcc.grubix.simulator.Address;
 import br.ufla.dcc.grubix.simulator.Interval;
 import br.ufla.dcc.grubix.simulator.LayerException;
 import br.ufla.dcc.grubix.simulator.LayerType;
 import br.ufla.dcc.grubix.simulator.NodeId;
+import br.ufla.dcc.grubix.simulator.Position;
 import br.ufla.dcc.grubix.simulator.SimulationFailedException;
 import br.ufla.dcc.grubix.simulator.event.CrossLayerEvent;
 import br.ufla.dcc.grubix.simulator.event.Finalize;
@@ -46,6 +48,7 @@ import br.ufla.dcc.grubix.simulator.node.BitrateAdaptationPolicy;
 import br.ufla.dcc.grubix.simulator.node.Link;
 import br.ufla.dcc.grubix.simulator.node.MACLayer;
 import br.ufla.dcc.grubix.simulator.node.MACState;
+import br.ufla.dcc.grubix.simulator.node.Node;
 import br.ufla.dcc.grubix.simulator.node.RadioState;
 import br.ufla.dcc.grubix.simulator.node.user.AARFRateAdaptation;
 import br.ufla.dcc.grubix.simulator.node.user.CarrierSenseInterruptedEvent;
@@ -53,6 +56,9 @@ import br.ufla.dcc.grubix.simulator.node.user.IEEE_802_11_TimingParameters;
 import br.ufla.dcc.grubix.simulator.node.user.MAC_IEEE802_11bg_DCF;
 import br.ufla.dcc.grubix.xml.ConfigurationException;
 import br.ufla.dcc.grubix.xml.ShoXParameter;
+import br.ufla.dcc.mac.backbone.packet.BbCircleBuilderAgent;
+import br.ufla.dcc.mac.backbone.packet.GoodnessPkt;
+import br.ufla.dcc.mac.backbone.packet.GoodnessRequestPkt;
 import br.ufla.dcc.mac.backbone.packet.SchedulePacket;
 import br.ufla.dcc.mac.backbone.state.CarrierSensing;
 import br.ufla.dcc.mac.backbone.state.Listening;
@@ -60,11 +66,14 @@ import br.ufla.dcc.mac.backbone.state.NodeState;
 import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 import br.ufla.dcc.mac.backbone.wakeupcall.BroadcastScheduleDelayed;
 import br.ufla.dcc.mac.backbone.wakeupcall.CreateScheduleWUC;
+import br.ufla.dcc.mac.backbone.wakeupcall.FindAgentTarget;
 import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.WakeUpWUC;
+import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
+import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.Simulation;
 
-public class Backbone_MAC extends MACLayer {
+public class CircularBackbone_MAC extends MACLayer {
 
 	private static final String NODE_STATE = "NodeState";
 
@@ -73,7 +82,7 @@ public class Backbone_MAC extends MACLayer {
 	private final BbMacTiming __timing = new BbMacTiming();
 
 	/** Logger of this class. */
-	protected static final Logger LOGGER = Logger.getLogger(Backbone_MAC.class.getName());
+	protected static final Logger LOGGER = Logger.getLogger(CircularBackbone_MAC.class.getName());
 
 	/** Index for the statistic type "drops/s". */
 	private static final int DROPS_PER_SECOND = 0;
@@ -200,7 +209,11 @@ public class Backbone_MAC extends MACLayer {
 
 	private final List<Schedule> __schedules;
 
-	public Backbone_MAC() {
+	private double _distanceFromCenter = -1;
+
+	private static Node __centerNode;
+
+	public CircularBackbone_MAC() {
 		/** constructor. */
 		_outQueue = new LinkedList<WlanFramePacket>();
 		_droppedPackets = 0;
@@ -209,6 +222,152 @@ public class Backbone_MAC extends MACLayer {
 		__NodeState = new Listening();
 		__schedules = new ArrayList<Schedule>();
 	}
+
+	/**
+	 * Method to start this layer.
+	 * 
+	 * @param start
+	 *            StartSimulation event to start the layer.
+	 */
+	@Override
+	protected void processEvent(StartSimulation start) {
+		Address thisAddress = new Address(id, LayerType.MAC);
+		StatisticLogRequest slr = new StatisticLogRequest(thisAddress, getConfig().getSimulationSteps(1), DROPS_PER_SECOND);
+		sendEventSelf(slr);
+
+		if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
+			__centerNode = getNode();
+			_distanceFromCenter = 0;
+			Simulation.Log.state("CenterNode", 1, __centerNode);
+			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
+
+			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
+			sendEventSelf(broadcastCenterFound);
+
+			BbCircleBuilderAgent bbBuilderAgent = new BbCircleBuilderAgent(sender, NodeId.ALLNODES);
+			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 500, bbBuilderAgent);
+			sendEventSelf(broadcastBbBuilderAgent);
+		}
+	}
+
+	private boolean isThereACenterNode() {
+		return __centerNode != null;
+	}
+
+	private boolean verifyCenter(Position position) {
+		if (isThereACenterNode()) {
+			return false;
+		}
+
+		double nodeX = position.getXCoord();
+		double nodeY = position.getYCoord();
+
+		double fieldSizeX = Configuration.getInstance().getXSize();
+		double fieldSizeY = Configuration.getInstance().getYSize();
+
+		double fieldVarianceX = fieldSizeX * .05;
+		double fieldVarianceY = fieldSizeY * .05;
+
+		double centerX = fieldSizeX / 2;
+		double centerY = fieldSizeY / 2;
+
+		if (centerX - fieldVarianceX < nodeX && nodeX < centerX + fieldVarianceX) {
+			if (centerY - fieldVarianceY < nodeY && nodeY < centerY + fieldVarianceY) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public double getDistanceFromCenter() {
+		return _distanceFromCenter;
+	}
+
+	private void setDistanceFromCenter(double distanceFromCenter) {
+		_distanceFromCenter = distanceFromCenter;
+		Simulation.Log.state("Radius", _distanceFromCenter, getNode());
+
+		int backboneRadius = 100;
+		int variation = 15;
+
+		if (_distanceFromCenter > backboneRadius - variation && _distanceFromCenter < backboneRadius + variation) {
+			Simulation.Log.state("Backbone Range", 4, getNode());
+		} else {
+			Simulation.Log.state("Backbone Range", 7, getNode());
+		}
+
+	}
+
+	@SuppressWarnings("unused")
+	private void process(BroadcastDistanceFromCenter broadcastDistance) {
+		WlanFramePacket centerPacket = new DistanceFromCenterPacket(myAddress(), NodeId.ALLNODES, getDistanceFromCenter());
+		sendLanPacket(centerPacket);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(FindAgentTarget findTarget) {
+		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
+		sendLanPacket(goodnessRequest);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(GoodnessRequestPkt goodnessRequest) {
+		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
+		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
+
+		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), new Random().nextDouble() * 10, goodness);
+		sendEventSelf(sendGoodness);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(GoodnessPkt goodnessPkt) {
+		goodnessPkt.getSenderGoodness();
+
+		// TODO - HANDLE GOODNESS PACKETS
+	}
+
+	private void sendLanPacket(WlanFramePacket goodnessPkt) {
+		applyDefaultBitrate(goodnessPkt);
+		sendPacket(goodnessPkt);
+	}
+
+	private void applyDefaultBitrate(WlanFramePacket goodnessRequest) {
+		applyBitrate(goodnessRequest, -1);
+	}
+
+	private Address myAddress() {
+		return getSender();
+	}
+
+	@SuppressWarnings("unused")
+	private void process(DistanceFromCenterPacket distancePacket) {
+		// TODO - REIMPLEMENT THIS METHOD USING SIGNAL STENGHT TO CALCULATE THE DISTANCE
+		// double distanceFromCenter = distancePacket.getDistanceFromCenter();
+		// double signalStength = distancePacket.getSignalStrength();
+
+		Position senderPosition = Simulation.Get.nodePosition(distancePacket.getSender().getId());
+		Position myPosition = getNode().getPosition();
+
+		double catetoA = senderPosition.getXCoord() - myPosition.getXCoord();
+		double catetoB = senderPosition.getYCoord() - myPosition.getYCoord();
+		double distanceFromNode = Math.sqrt(catetoA * catetoA + catetoB * catetoB);
+		double distanceFromCenter = distanceFromNode + distancePacket.getDistanceFromCenter();
+
+		if (isDistanceFromCenterNotSet() || distanceFromCenter < getDistanceFromCenter()) {
+			setDistanceFromCenter(distanceFromCenter);
+
+			WakeUpCall broadcastDistanceFromCenter = new BroadcastDistanceFromCenter(myAddress(), new Random().nextInt(50));
+			sendEventSelf(broadcastDistanceFromCenter);
+		}
+
+	}
+
+	private boolean isDistanceFromCenterNotSet() {
+		return getDistanceFromCenter() < 0;
+	}
+
+	// NEW IMPLEMENTATION ABOVE HERE #################################################################################################################
 
 	/**
 	 * internal method to apply the current used bitrate. Afterwards getSendingTime is valid.
@@ -244,14 +403,14 @@ public class Backbone_MAC extends MACLayer {
 			return;
 		}
 
-		SchedulePacket schedulePacket = new SchedulePacket(getSender(), NodeId.ALLNODES, schedule);
+		SchedulePacket schedulePacket = new SchedulePacket(myAddress(), NodeId.ALLNODES, schedule);
 
 		if (delay <= 0) {
 			sendPacketDown(schedulePacket);
 			return;
 		}
 
-		SendDelayedWakeUp sendDelayedWakeUp = new BroadcastScheduleDelayed(getSender(), delay, schedulePacket);
+		SendDelayedWakeUp sendDelayedWakeUp = new BroadcastScheduleDelayed(myAddress(), delay, schedulePacket);
 		sendEventSelf(sendDelayedWakeUp);
 	}
 
@@ -268,7 +427,7 @@ public class Backbone_MAC extends MACLayer {
 	 * internal method to modify/set the backoff delay.
 	 * 
 	 * @param csStart
-	 *            time from which the carrier sensing started.
+	 *            time from which the carrier seng started.
 	 */
 	private void calcBackoffTime(double csStart) {
 		if (_immediateSend) {
@@ -293,10 +452,6 @@ public class Backbone_MAC extends MACLayer {
 		}
 		__schedules.add(schedule);
 		this.scheduleWakeUp(schedule.getDelay(SimulationManager.getInstance().getCurrentTime()));
-	}
-
-	private String getHandlerMethodName(WakeUpCall wuc) {
-		return "process" + wuc.getClass().getSimpleName();
 	}
 
 	/**
@@ -387,7 +542,7 @@ public class Backbone_MAC extends MACLayer {
 			throw new SimulationFailedException("propagation delay is invalid for " + MAC_IEEE802_11bg_DCF.class.getName());
 		}
 
-		WakeUpCall createSchedule = new CreateScheduleWUC(getSender(), new Random().nextDouble() * __timing.getSleepCycleSize());
+		WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getSleepCycleSize());
 		sendEventSelf(createSchedule);
 
 		// scheduleWakeUp(SLEEP_CYCLE_SIZE);
@@ -415,6 +570,10 @@ public class Backbone_MAC extends MACLayer {
 	 */
 	@Override
 	public final void lowerSAP(Packet packet) {
+
+		if (!packetIsForThisNode(packet) && !packetIsForAllNodes(packet)) {
+			return;
+		}
 
 		try {
 			Method declaredMethod = getClass().getDeclaredMethod("process", packet.getClass());
@@ -832,7 +991,7 @@ public class Backbone_MAC extends MACLayer {
 
 	private void startCarrierSensing() {
 		__NodeState = new CarrierSensing();
-		sendEventSelf(new MACCarrierSensing(getSender(), __timing.getCarrierSensingSize()));
+		sendEventSelf(new MACCarrierSensing(myAddress(), __timing.getCarrierSensingSize()));
 	}
 
 	/**
@@ -880,19 +1039,6 @@ public class Backbone_MAC extends MACLayer {
 		raDefaultPolicy.setBitrateIdx(n);
 	}
 
-	/**
-	 * Method to start this layer.
-	 * 
-	 * @param start
-	 *            StartSimulation event to start the layer.
-	 */
-	@Override
-	protected void processEvent(StartSimulation start) {
-		Address thisAddress = new Address(id, LayerType.MAC);
-		StatisticLogRequest slr = new StatisticLogRequest(thisAddress, getConfig().getSimulationSteps(1), DROPS_PER_SECOND);
-		sendEventSelf(slr);
-	}
-
 	@SuppressWarnings("unused")
 	private void process(SendDelayedWakeUp sendDelayed) {
 		sendPacketDown((WlanFramePacket) sendDelayed.getPkt());
@@ -930,12 +1076,12 @@ public class Backbone_MAC extends MACLayer {
 	}
 
 	private void scheduleGoSleep(double delayInSteps) {
-		WakeUpCall goSleep = new GoSleepWUC(getSender(), delayInSteps);
+		WakeUpCall goSleep = new GoSleepWUC(myAddress(), delayInSteps);
 		sendEventSelf(goSleep);
 	}
 
 	private void scheduleWakeUp(double delayInSteps) {
-		WakeUpCall wakeUp = new WakeUpWUC(getSender(), delayInSteps);
+		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayInSteps);
 		sendEventSelf(wakeUp);
 	}
 

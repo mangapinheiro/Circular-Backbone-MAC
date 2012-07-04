@@ -9,6 +9,7 @@ import java.util.TreeSet;
 
 import br.ufla.dcc.event.wuc.BackBoneAgentsDisseminateWUC;
 import br.ufla.dcc.event.wuc.BackBoneCreateWUC;
+import br.ufla.dcc.event.wuc.BroadcastDistanceFromCenter;
 import br.ufla.dcc.event.wuc.RemoveGoodnessListWUC;
 import br.ufla.dcc.event.wuc.SendDelayedWUC;
 import br.ufla.dcc.grubix.simulator.LayerException;
@@ -25,11 +26,11 @@ import br.ufla.dcc.grubix.simulator.node.ApplicationLayer;
 import br.ufla.dcc.grubix.simulator.node.Node;
 import br.ufla.dcc.mac.packet.BbBuilderAgentPacket;
 import br.ufla.dcc.mac.packet.BbCandidatesGoodnessRequestPacket;
+import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.mac.packet.GoodnessPacket;
 import br.ufla.dcc.mac.packet.RefuseAgentPacket;
 import br.ufla.dcc.packet.AgentPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
-import br.ufla.dcc.utils.BbSyncDirection;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
 
@@ -49,6 +50,8 @@ public class CircularBackboneNode extends ApplicationLayer {
 	private NodeId _child;
 
 	private int _distanceFromCenter;
+
+	private double _distaceFromCenter = -1;
 
 	public CircularBackboneNode() {
 		_goodness = Math.random() * .2d + .8d;
@@ -90,13 +93,17 @@ public class CircularBackboneNode extends ApplicationLayer {
 
 		if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
 			__centerNode = getNode();
+			_distaceFromCenter = 0;
 			Simulation.Log.state("CenterNode", 1, __centerNode);
 			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
 
-			BbBuilderAgentPacket builderAgentTO_SOURCE = new BbBuilderAgentPacket(sender, NodeId.ALLNODES, BbSyncDirection.TO_SOURCE);
+			// WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
+			// sendEventSelf(broadcastCenterFound);
 
-			WakeUpCall wucBkb = new BackBoneCreateWUC(sender, 200, builderAgentTO_SOURCE);
-			sendEventSelf(wucBkb);
+			// BbBuilderAgentPacket builderAgentTO_SOURCE = new BbBuilderAgentPacket(sender, NodeId.ALLNODES, BbSyncDirection.TO_SOURCE);
+			//
+			// WakeUpCall wucBkb = new BackBoneCreateWUC(sender, 200, builderAgentTO_SOURCE);
+			// sendEventSelf(wucBkb);
 		}
 	}
 
@@ -129,6 +136,17 @@ public class CircularBackboneNode extends ApplicationLayer {
 
 		return false;
 	}
+
+	public void process(BroadcastDistanceFromCenter wuc) {
+		Packet centerPacket = new DistanceFromCenterPacket(getSender(), NodeId.ALLNODES, getDistanceFromCenter());
+		this.sendPacket(centerPacket);
+	}
+
+	private double getDistanceFromCenter() {
+		return _distaceFromCenter;
+	}
+
+	// NEW IMPLEMENTATION ABOVE HERE #################################################################################################################
 
 	@Override
 	public void processEvent(TrafficGeneration tg) {
@@ -267,13 +285,9 @@ public class CircularBackboneNode extends ApplicationLayer {
 		BbCandidatesGoodnessRequestPacket grPkt = new BbCandidatesGoodnessRequestPacket(this.sender, NodeId.ALLNODES, builderAgent, this.getNode()
 				.getPosition(), 0);
 		this.sendPacket(grPkt);
-		// WakeUpCall removeGoodnessListWuc = new
-		// RemoveGoodnessListWUC(this.sender, 500, builderAgent);
-		// this.sendEventSelf(removeGoodnessListWuc);
 
 		WakeUpCall disseminateAgentWuc = new BackBoneAgentsDisseminateWUC(this.sender, 100, builderAgent);
 		this.sendEventSelf(disseminateAgentWuc);
-
 	}
 
 	public void process(BackBoneAgentsDisseminateWUC wuc) {
