@@ -2,10 +2,8 @@ package br.ufla.dcc.mac.backbone.packet;
 
 import br.ufla.dcc.grubix.simulator.Address;
 import br.ufla.dcc.grubix.simulator.NodeId;
-import br.ufla.dcc.grubix.simulator.event.Packet;
-import br.ufla.dcc.grubix.simulator.event.user.WlanFramePacket;
 
-public class GoodnessPkt extends WlanFramePacket {
+public class GoodnessPkt extends MACAgent {
 
 	private static final int DEFAULT_SIGNAL_STRENGTH = 6;
 	private final ElectorAgent _agent;
@@ -25,7 +23,7 @@ public class GoodnessPkt extends WlanFramePacket {
 		return _goodness;
 	}
 
-	public Packet getAgent() {
+	public MACAgent getAgent() {
 		return _agent;
 	}
 }

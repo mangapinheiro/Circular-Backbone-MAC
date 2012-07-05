@@ -18,6 +18,10 @@ public class Simulation {
 		public static void state(String name, double value, Node forNode) {
 			SimulationManager.logNodeState(forNode.getId(), name, "float", String.valueOf(value));
 		}
+
+		public static void state(String name, long value, Node forNode) {
+			SimulationManager.logNodeState(forNode.getId(), name, "int", String.valueOf(value));
+		}
 	}
 
 	public static final class Get {
@@ -26,4 +30,12 @@ public class Simulation {
 		}
 	}
 
+	public static final class Calculate {
+		public static double distanceBetweenPositions(Position pos1, Position pos2) {
+			double catetoA = pos1.getXCoord() - pos2.getXCoord();
+			double catetoB = pos1.getYCoord() - pos2.getYCoord();
+			double distanceFromNode = Math.sqrt(catetoA * catetoA + catetoB * catetoB);
+			return distanceFromNode;
+		}
+	}
 }

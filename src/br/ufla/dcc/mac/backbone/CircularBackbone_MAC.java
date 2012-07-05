@@ -3,9 +3,13 @@ package br.ufla.dcc.mac.backbone;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
@@ -59,6 +63,7 @@ import br.ufla.dcc.grubix.xml.ShoXParameter;
 import br.ufla.dcc.mac.backbone.packet.BbCircleBuilderAgent;
 import br.ufla.dcc.mac.backbone.packet.GoodnessPkt;
 import br.ufla.dcc.mac.backbone.packet.GoodnessRequestPkt;
+import br.ufla.dcc.mac.backbone.packet.MACAgent;
 import br.ufla.dcc.mac.backbone.packet.SchedulePacket;
 import br.ufla.dcc.mac.backbone.state.CarrierSensing;
 import br.ufla.dcc.mac.backbone.state.Listening;
@@ -66,14 +71,18 @@ import br.ufla.dcc.mac.backbone.state.NodeState;
 import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 import br.ufla.dcc.mac.backbone.wakeupcall.BroadcastScheduleDelayed;
 import br.ufla.dcc.mac.backbone.wakeupcall.CreateScheduleWUC;
+import br.ufla.dcc.mac.backbone.wakeupcall.DisseminateAgent;
 import br.ufla.dcc.mac.backbone.wakeupcall.FindAgentTarget;
 import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.WakeUpWUC;
 import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
+import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
 
 public class CircularBackbone_MAC extends MACLayer {
+
+	private static final int BACKBONE_RADIUS = 100;
 
 	private static final String NODE_STATE = "NodeState";
 
@@ -213,6 +222,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private static Node __centerNode;
 
+	private final Map<Integer, SortedSet<NeighborGoodness>> _neighborGoodness = new HashMap<Integer, SortedSet<NeighborGoodness>>();
+
 	public CircularBackbone_MAC() {
 		/** constructor. */
 		_outQueue = new LinkedList<WlanFramePacket>();
@@ -244,8 +255,8 @@ public class CircularBackbone_MAC extends MACLayer {
 			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
 			sendEventSelf(broadcastCenterFound);
 
-			BbCircleBuilderAgent bbBuilderAgent = new BbCircleBuilderAgent(sender, NodeId.ALLNODES);
-			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 500, bbBuilderAgent);
+			BbCircleBuilderAgent bbBuilderAgent = new BbCircleBuilderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
+			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 200, bbBuilderAgent);
 			sendEventSelf(broadcastBbBuilderAgent);
 		}
 	}
@@ -307,8 +318,24 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(FindAgentTarget findTarget) {
+		_neighborGoodness.put(findTarget.getAgent().getIdentifier(), new TreeSet<NeighborGoodness>());
+
 		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
 		sendLanPacket(goodnessRequest);
+
+		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), 100, findTarget.getAgent());
+		sendEventSelf(disseminateAgent);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(BbCircleBuilderAgent agent) {
+		Simulation.Log.state("Visited by agent", agent.getIdentifier(), getNode());
+
+		// GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
+		// sendLanPacket(goodnessRequest);
+
+		WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 20, agent);
+		sendEventSelf(broadcastBbBuilderAgent);
 	}
 
 	@SuppressWarnings("unused")
@@ -324,7 +351,44 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void process(GoodnessPkt goodnessPkt) {
 		goodnessPkt.getSenderGoodness();
 
-		// TODO - HANDLE GOODNESS PACKETS
+		NeighborGoodness NeighborGoodness = new NeighborGoodness(goodnessPkt.getSender().getId(), goodnessPkt.getSenderGoodness());
+		_neighborGoodness.get(goodnessPkt.getAgent().getIdentifier()).add(NeighborGoodness);
+	}
+
+	private NodeId getBestCandidate(MACAgent agent) {
+		if (_neighborGoodness.get(agent.getIdentifier()).isEmpty()) {
+			return null;
+		}
+
+		return _neighborGoodness.get(agent.getIdentifier()).last().getNodeId();
+	}
+
+	public void process(DisseminateAgent disseminate) {
+		MACAgent agent = disseminate.getAgent();
+
+		NodeId chosenCandidate = this.getBestCandidate(agent);
+
+		if (chosenCandidate != null) {
+			agent.setSender(this.getSender());
+			agent.setupToForwardTo(chosenCandidate);
+
+			sendLanPacket(agent);
+		} else {
+
+			// TODO - HANDLE "NO CANDIDATES FOUND"
+
+			// this.setOnBackbone(false);
+			// SimulationManager.logNodeState(this.getId(), "BackBone", "int", BackboneNodeState.ERROR + "");
+			// agent.removeHop();
+			//
+			// if (getSender().getId() == sinkNodeId) {
+			// System.out.println("=======================> IMPOSSIBLE TO CREATE BACKBONE, NO NODE IS ELIGIBLE!!!");
+			// return;
+			// }
+			// RefuseAgentPacket refusePkt = new RefuseAgentPacket(this.sender, this.parent, agent);
+			// this.sendEventSelf(new SendDelayedWUC(this.getSender(), Math.random() * 100, refusePkt));
+		}
+
 	}
 
 	private void sendLanPacket(WlanFramePacket goodnessPkt) {
@@ -349,9 +413,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		Position senderPosition = Simulation.Get.nodePosition(distancePacket.getSender().getId());
 		Position myPosition = getNode().getPosition();
 
-		double catetoA = senderPosition.getXCoord() - myPosition.getXCoord();
-		double catetoB = senderPosition.getYCoord() - myPosition.getYCoord();
-		double distanceFromNode = Math.sqrt(catetoA * catetoA + catetoB * catetoB);
+		double distanceFromNode = Simulation.Calculate.distanceBetweenPositions(senderPosition, myPosition);
 		double distanceFromCenter = distanceFromNode + distancePacket.getDistanceFromCenter();
 
 		if (isDistanceFromCenterNotSet() || distanceFromCenter < getDistanceFromCenter()) {
