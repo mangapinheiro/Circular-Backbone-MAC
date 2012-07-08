@@ -61,6 +61,7 @@ import br.ufla.dcc.grubix.simulator.node.user.MAC_IEEE802_11bg_DCF;
 import br.ufla.dcc.grubix.xml.ConfigurationException;
 import br.ufla.dcc.grubix.xml.ShoXParameter;
 import br.ufla.dcc.mac.backbone.packet.BbCircleBuilderAgent;
+import br.ufla.dcc.mac.backbone.packet.BbCircleRootFinderAgent;
 import br.ufla.dcc.mac.backbone.packet.GoodnessPkt;
 import br.ufla.dcc.mac.backbone.packet.GoodnessRequestPkt;
 import br.ufla.dcc.mac.backbone.packet.MACAgent;
@@ -255,7 +256,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
 			sendEventSelf(broadcastCenterFound);
 
-			BbCircleBuilderAgent bbBuilderAgent = new BbCircleBuilderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
+			BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
 			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 200, bbBuilderAgent);
 			sendEventSelf(broadcastBbBuilderAgent);
 		}
@@ -328,18 +329,35 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	@SuppressWarnings("unused")
-	private void process(BbCircleBuilderAgent agent) {
-		Simulation.Log.state("Visited by agent", agent.getIdentifier(), getNode());
+	private void process(BbCircleRootFinderAgent rootFinderAgent) {
+		Simulation.Log.state("Visited by agent", rootFinderAgent.getIdentifier(), getNode());
 
-		// GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
-		// sendLanPacket(goodnessRequest);
+		if (rootFinderAgent.electsMe(getNode())) {
 
-		WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 20, agent);
-		sendEventSelf(broadcastBbBuilderAgent);
+			BbCircleBuilderAgent circleBuilder = rootFinderAgent.createBuilder();
+			Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
+
+			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, 20, circleBuilder);
+			sendEventSelf(forwardBackboneBuilder);
+		} else {
+			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 20, rootFinderAgent);
+			sendEventSelf(broadcastBbBuilderAgent);
+		}
+
 	}
 
 	@SuppressWarnings("unused")
-	private void process(GoodnessRequestPkt goodnessRequest) {
+	private void process(BbCircleBuilderAgent circleBuilder) {
+		Simulation.Log.state("Visited by agent", circleBuilder.getIdentifier(), getNode());
+
+		Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
+
+		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, 20, circleBuilder);
+		sendEventSelf(forwardBackboneBuilder);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(GoodnessRequestPkt goodnessRequest) { // TODO - CHANGE TO RESPOND ONLY ONCE PER AGENT
 		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
 		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
 
@@ -378,15 +396,18 @@ public class CircularBackbone_MAC extends MACLayer {
 			// TODO - HANDLE "NO CANDIDATES FOUND"
 
 			// this.setOnBackbone(false);
-			// SimulationManager.logNodeState(this.getId(), "BackBone", "int", BackboneNodeState.ERROR + "");
+			// SimulationManager.logNodeState(this.getId(), "BackBone", "int",
+			// BackboneNodeState.ERROR + "");
 			// agent.removeHop();
 			//
 			// if (getSender().getId() == sinkNodeId) {
 			// System.out.println("=======================> IMPOSSIBLE TO CREATE BACKBONE, NO NODE IS ELIGIBLE!!!");
 			// return;
 			// }
-			// RefuseAgentPacket refusePkt = new RefuseAgentPacket(this.sender, this.parent, agent);
-			// this.sendEventSelf(new SendDelayedWUC(this.getSender(), Math.random() * 100, refusePkt));
+			// RefuseAgentPacket refusePkt = new RefuseAgentPacket(this.sender,
+			// this.parent, agent);
+			// this.sendEventSelf(new SendDelayedWUC(this.getSender(),
+			// Math.random() * 100, refusePkt));
 		}
 
 	}
@@ -406,7 +427,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(DistanceFromCenterPacket distancePacket) {
-		// TODO - REIMPLEMENT THIS METHOD USING SIGNAL STENGHT TO CALCULATE THE DISTANCE
+		// TODO - REIMPLEMENT THIS METHOD USING SIGNAL STENGHT TO CALCULATE THE
+		// DISTANCE
 		// double distanceFromCenter = distancePacket.getDistanceFromCenter();
 		// double signalStength = distancePacket.getSignalStrength();
 
@@ -429,7 +451,8 @@ public class CircularBackbone_MAC extends MACLayer {
 		return getDistanceFromCenter() < 0;
 	}
 
-	// NEW IMPLEMENTATION ABOVE HERE #################################################################################################################
+	// NEW IMPLEMENTATION ABOVE HERE
+	// #################################################################################################################
 
 	/**
 	 * internal method to apply the current used bitrate. Afterwards getSendingTime is valid.
@@ -506,7 +529,8 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void followSchedule(Schedule schedule) {
-		// TODO CONFIGURE THE NODE TO FOLOW A SCHEDULE (create WakeUp and GoSleep wake up calls)
+		// TODO CONFIGURE THE NODE TO FOLOW A SCHEDULE (create WakeUp and
+		// GoSleep wake up calls)
 		if (!hasSchedule()) {
 			Simulation.Log.state("Schedule", schedule.getId(), getNode());
 		} else {
@@ -681,16 +705,16 @@ public class CircularBackbone_MAC extends MACLayer {
 		} else {
 			if (packetIsForThisNode(packet) && packet.isTerminal() && (frame.isControl())) {
 				switch (frame.getType()) {
-					case ACK:
-						_pendingACK = false;
-						_immediateSend = true;
-						break;
-					case RTS:
-						break;
-					case CTS:
-						break;
-					default:
-						break;
+				case ACK:
+					_pendingACK = false;
+					_immediateSend = true;
+					break;
+				case RTS:
+					break;
+				case CTS:
+					break;
+				default:
+					break;
 				}
 				// TODO handle MAC control packets, like [rts, cts]
 
@@ -844,7 +868,8 @@ public class CircularBackbone_MAC extends MACLayer {
 				_currentOutPacket.setRetryCount(retryCount);
 				calcBackoffTime(0.0);
 				_currentOutPacket.setReadyForTransmission(true);
-				_currentOutPacket.reset(); // prepare the packet for resending ##
+				_currentOutPacket.reset(); // prepare the packet for resending
+											// ##
 				applyBitrate(_currentOutPacket, -1);
 
 				// enforce recalculation of a random backoff, since a collision
