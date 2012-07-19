@@ -62,6 +62,7 @@ import br.ufla.dcc.grubix.xml.ConfigurationException;
 import br.ufla.dcc.grubix.xml.ShoXParameter;
 import br.ufla.dcc.mac.backbone.packet.BbCircleBuilderAgent;
 import br.ufla.dcc.mac.backbone.packet.BbCircleRootFinderAgent;
+import br.ufla.dcc.mac.backbone.packet.ElectorAgent;
 import br.ufla.dcc.mac.backbone.packet.GoodnessPkt;
 import br.ufla.dcc.mac.backbone.packet.GoodnessRequestPkt;
 import br.ufla.dcc.mac.backbone.packet.MACAgent;
@@ -224,6 +225,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	private static Node __centerNode;
 
 	private final Map<Integer, SortedSet<NeighborGoodness>> _neighborGoodness = new HashMap<Integer, SortedSet<NeighborGoodness>>();
+	private final ArrayList<Integer> _knownAgents = new ArrayList<Integer>();
 
 	public CircularBackbone_MAC() {
 		/** constructor. */
@@ -358,6 +360,12 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(GoodnessRequestPkt goodnessRequest) { // TODO - CHANGE TO RESPOND ONLY ONCE PER AGENT
+		if (knowsAgent(goodnessRequest.getAgent())) {
+			return; // do not respond to known agents
+		}
+
+		addKnownAgent(goodnessRequest.getAgent());
+
 		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
 		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
 
@@ -365,12 +373,27 @@ public class CircularBackbone_MAC extends MACLayer {
 		sendEventSelf(sendGoodness);
 	}
 
+	private void addKnownAgent(ElectorAgent agent) {
+		_knownAgents.add(agent.getIdentifier());
+	}
+
+	private boolean knowsAgent(ElectorAgent agent) {
+		return _knownAgents.contains(agent.getIdentifier());
+	}
+
 	@SuppressWarnings("unused")
 	private void process(GoodnessPkt goodnessPkt) {
 		goodnessPkt.getSenderGoodness();
 
 		NeighborGoodness NeighborGoodness = new NeighborGoodness(goodnessPkt.getSender().getId(), goodnessPkt.getSenderGoodness());
-		_neighborGoodness.get(goodnessPkt.getAgent().getIdentifier()).add(NeighborGoodness);
+		getGoodnessListForAgent(goodnessPkt.getAgent()).add(NeighborGoodness);
+	}
+
+	private SortedSet<br.ufla.dcc.utils.NeighborGoodness> getGoodnessListForAgent(MACAgent agent) {
+		if (_neighborGoodness.get(agent.getIdentifier()) == null) {
+			_neighborGoodness.put(agent.getIdentifier(), new TreeSet<NeighborGoodness>());
+		}
+		return _neighborGoodness.get(agent.getIdentifier());
 	}
 
 	private NodeId getBestCandidate(MACAgent agent) {
