@@ -97,8 +97,8 @@ public class CircularBackboneNode extends ApplicationLayer {
 			Simulation.Log.state("CenterNode", 1, __centerNode);
 			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
 
-			// WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
-			// sendEventSelf(broadcastCenterFound);
+			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(getSender(), 0);
+			sendEventSelf(broadcastCenterFound);
 
 			// BbBuilderAgentPacket builderAgentTO_SOURCE = new BbBuilderAgentPacket(sender, NodeId.ALLNODES, BbSyncDirection.TO_SOURCE);
 			//

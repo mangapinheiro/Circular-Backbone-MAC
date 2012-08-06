@@ -11,6 +11,7 @@ import java.util.TreeSet;
 
 import br.ufla.dcc.event.wuc.BackBoneAgentsDisseminateWUC;
 import br.ufla.dcc.event.wuc.BackBoneCreateWUC;
+import br.ufla.dcc.event.wuc.CascadingSyncWUC;
 import br.ufla.dcc.event.wuc.CascadingWUC;
 import br.ufla.dcc.event.wuc.ProcessCascadeWUC;
 import br.ufla.dcc.event.wuc.RemoveActiveAgentWUC;
@@ -109,8 +110,8 @@ public class RegularNode extends ApplicationLayer {
 
 			SimulationManager.logNodeState(this.getId(), "BackBone", "int", BackboneNodeState.IS_BACKBONE + "");
 
-			// CascadingSyncWUC cswuc = new CascadingSyncWUC(sender, 100);
-			// sendEventSelf(cswuc);
+			CascadingSyncWUC cswuc = new CascadingSyncWUC(sender, 100);
+			sendEventSelf(cswuc);
 
 			WakeUpCall cskdBkb = new CascadingWUC(sender, 100);
 			sendEventSelf(cskdBkb);

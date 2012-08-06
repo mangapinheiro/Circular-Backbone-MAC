@@ -5,18 +5,22 @@ import java.util.Random;
 import br.ufla.dcc.grubix.simulator.kernel.Configuration;
 
 public class BbMacTiming {
-	private static final double AWAKE_CYCLE_SECONDS = 0.2;
-	private static final double CARRIER_SENSING_SECONDS = 0.05;
-	private static final double SLEEP_CYCLE_SECONDS = 2;
+
+	private static final double LISTEN_PERIOD_FOR_SYNC_IN_SECONDS = 0.15;
+	private static final double LISTEN_PERIOD_FOR_RTS_IN_SECONDS = 0.25;
+	private static final double LISTEN_PERIOD_FOR_CTS_IN_SECONDS = 0.1;
+	private static final double AWAKE_CYCLE_SECONDS = LISTEN_PERIOD_FOR_CTS_IN_SECONDS + LISTEN_PERIOD_FOR_RTS_IN_SECONDS
+			+ LISTEN_PERIOD_FOR_SYNC_IN_SECONDS;
+	private static final double ENTIRE_CYCLE_IN_SECONDS = 10;
 	private static final Random RANDOM = new Random();
 
-	// /** contains to the simulationsteps converted value of SIFS. */
-	// private final double sifs;
-	// /** contains to the simulationsteps converted value of DIFS. */
-	// private final double pifs;
-	// /** contains to the simulationsteps converted value of PIFS. */
-	// private final double difs;
-	// /** contains to the simulationSteps converted value of SlotTime. */
+	/** contains to the simulationsteps converted value of SIFS. */
+	private final double sifs;
+	/** contains to the simulationsteps converted value of DIFS. */
+	private final double pifs;
+	/** contains to the simulationsteps converted value of PIFS. */
+	private final double difs;
+	/** contains to the simulationSteps converted value of SlotTime. */
 	// private double slotTime;
 	//
 	// /** define the time of a long preamble. */
@@ -30,7 +34,7 @@ public class BbMacTiming {
 	// /** contains the to us converted value of the syncDuration. */
 	// private int syncLength;
 
-	private final double _carrierSersingSize;
+	// private final double _carrierSersingSize;
 	private final double _awakeCycleSize;
 	private final double _sleepCycleSize;
 	private final Configuration _configuration;
@@ -49,19 +53,19 @@ public class BbMacTiming {
 	public BbMacTiming() {
 		_configuration = Configuration.getInstance();
 
-		_carrierSersingSize = _configuration.getSimulationSteps(CARRIER_SENSING_SECONDS);
-		_sleepCycleSize = _configuration.getSimulationSteps(SLEEP_CYCLE_SECONDS);
+		// _carrierSersingSize = _configuration.getSimulationSteps(CARRIER_SENSING_SECONDS);
+		_sleepCycleSize = _configuration.getSimulationSteps(ENTIRE_CYCLE_IN_SECONDS);
 		_awakeCycleSize = _configuration.getSimulationSteps(AWAKE_CYCLE_SECONDS);
 
 		// if (isB) {
-		// slotTime = _configuration.getSimulationSteps(0.000020);
+		double slotTime = _configuration.getSimulationSteps(0.000020);
 		// } else {
 		// slotTime = _configuration.getSimulationSteps(0.000009);
 		// }
 
-		// sifs = _configuration.getSimulationSteps(0.000010);
-		// pifs = sifs + slotTime;
-		// difs = sifs + 2.0 * slotTime;
+		sifs = _configuration.getSimulationSteps(0.000010);
+		pifs = sifs + slotTime;
+		difs = sifs + 2.0 * slotTime;
 		//
 		// int longPre = 192;
 		// int shortPre = 96;
@@ -134,7 +138,7 @@ public class BbMacTiming {
 		// }
 	}
 
-	public double getSleepCycleSize() {
+	public double getEntireCycleSize() {
 		return _sleepCycleSize;
 	}
 
@@ -142,18 +146,32 @@ public class BbMacTiming {
 		return _awakeCycleSize;
 	}
 
-	public double getCarrierSensingSize() {
-		return _carrierSersingSize;
+	public double getCarrierSensingSize(CarrierSensingType beforeSending) {
+		switch (beforeSending) {
+		case SYNC:
+			return _configuration.getSimulationSteps(LISTEN_PERIOD_FOR_SYNC_IN_SECONDS);
+		case RTS:
+			return _configuration.getSimulationSteps(LISTEN_PERIOD_FOR_RTS_IN_SECONDS);
+		default:
+			break;
+		}
+
+		return _configuration.getSimulationSteps(LISTEN_PERIOD_FOR_RTS_IN_SECONDS + LISTEN_PERIOD_FOR_RTS_IN_SECONDS);
 	}
 
 	public double getContentionTime() {
-		return RANDOM.nextDouble() * getAwakeCycleSize() / 2;
+		return RANDOM.nextDouble() * 0.1;
 	}
 
-	// /** @return the difs. */
-	// public final double getDifs() {
-	// return difs;
-	// }
+	public double getListenPeriodForSync() {
+		return _configuration.getSimulationSteps(LISTEN_PERIOD_FOR_SYNC_IN_SECONDS);
+	}
+
+	/** @return the difs. */
+	public final double getDifs() {
+		return difs;
+	}
+
 	//
 	// /** @return the pifs. */
 	// public final double getPifs() {
@@ -194,4 +212,8 @@ public class BbMacTiming {
 	// public final int getSyncLength() {
 	// return syncLength;
 	// }
+
+	public static enum CarrierSensingType {
+		SYNC, RTS
+	}
 }

@@ -76,6 +76,7 @@ import br.ufla.dcc.mac.backbone.wakeupcall.CreateScheduleWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.DisseminateAgent;
 import br.ufla.dcc.mac.backbone.wakeupcall.FindAgentTarget;
 import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
+import br.ufla.dcc.mac.backbone.wakeupcall.StartCarrierSensingWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.WakeUpWUC;
 import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
@@ -474,9 +475,6 @@ public class CircularBackbone_MAC extends MACLayer {
 		return getDistanceFromCenter() < 0;
 	}
 
-	// NEW IMPLEMENTATION ABOVE HERE
-	// #################################################################################################################
-
 	/**
 	 * internal method to apply the current used bitrate. Afterwards getSendingTime is valid.
 	 * 
@@ -504,6 +502,9 @@ public class CircularBackbone_MAC extends MACLayer {
 			f.setBPS(globalTimings, raLocal);
 		}
 	}
+
+	// NEW IMPLEMENTATION ABOVE HERE
+	// #################################################################################################################
 
 	private void broadcastSchedule(Schedule schedule, double delay) {
 		if (thisNodeHasMultipleSchedules()) {
@@ -651,7 +652,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			throw new SimulationFailedException("propagation delay is invalid for " + MAC_IEEE802_11bg_DCF.class.getName());
 		}
 
-		WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getSleepCycleSize());
+		WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
 		sendEventSelf(createSchedule);
 
 		// scheduleWakeUp(SLEEP_CYCLE_SIZE);
@@ -1054,7 +1055,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(SendingTerminated wuc) {
 		_willSendACK = false;
-		trySend(4); // #4#
+		// trySend(4); // #4# TODO - Should try send for Adaptative listening
 	}
 
 	@SuppressWarnings("unused")
@@ -1073,7 +1074,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
-		Schedule schedule = new Schedule(SimulationManager.getInstance().getCurrentTime(), __timing.getSleepCycleSize());
+		Schedule schedule = new Schedule(SimulationManager.getInstance().getCurrentTime(), __timing.getEntireCycleSize());
 
 		followSchedule(schedule);
 
@@ -1094,14 +1095,22 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(WakeUpWUC wakeUp) {
 		Simulation.Log.state(NODE_STATE, NodeState.AWAKEN, getNode());
+
+		// TODO - Change node state usin a StateManager
+
 		scheduleGoSleep(__timing.getAwakeCycleSize());
-		scheduleWakeUp(__timing.getSleepCycleSize());
-		trySend(0);
+		scheduleWakeUp(__timing.getEntireCycleSize());
+
+		if (_outQueue.size() > 0) { // TODO - change this to verify if there is packets to send
+			WakeUpCall startSensing = new StartCarrierSensingWUC(getSender(), __timing.getListenPeriodForSync() + __timing.getContentionTime());
+			sendEventSelf(startSensing);
+		}
 	}
 
-	private void startCarrierSensing() {
-		__NodeState = new CarrierSensing();
-		sendEventSelf(new MACCarrierSensing(myAddress(), __timing.getCarrierSensingSize()));
+	@SuppressWarnings("unused")
+	private void process(StartCarrierSensingWUC event) {
+		__NodeState = new CarrierSensing(); // TODO - Change this to a state manager
+		startCarrierSense(__timing.getDifs(), 0.0);
 	}
 
 	/**
