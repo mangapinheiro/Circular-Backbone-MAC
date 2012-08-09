@@ -1,6 +1,5 @@
 package br.ufla.dcc.nodes;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -97,7 +96,7 @@ public class CircularBackboneNode extends ApplicationLayer {
 			Simulation.Log.state("CenterNode", 1, __centerNode);
 			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
 
-			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(getSender(), 0);
+			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(getSender(), 10);
 			sendEventSelf(broadcastCenterFound);
 
 			// BbBuilderAgentPacket builderAgentTO_SOURCE = new BbBuilderAgentPacket(sender, NodeId.ALLNODES, BbSyncDirection.TO_SOURCE);
@@ -160,15 +159,8 @@ public class CircularBackboneNode extends ApplicationLayer {
 			if (declaredMethod != null) {
 				return declaredMethod.invoke(this, obj);
 			}
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
+		} catch (Exception e) {
+			System.err.println("Undefined methos called: " + prefix + "(" + obj.getClass().getSimpleName() + ")");
 			e.printStackTrace();
 		}
 
@@ -273,7 +265,7 @@ public class CircularBackboneNode extends ApplicationLayer {
 
 	@Override
 	public void processWakeUpCall(WakeUpCall wuc) {
-		this.processorInvoker("processWUC", wuc);
+		this.processorInvoker("process", wuc);
 	}
 
 	public void process(BackBoneCreateWUC wuc) {

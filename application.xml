@@ -17,7 +17,7 @@
     </physicalmodel>
     
     <movementmanager>
-        <class>br.ufla.dcc.grubix.simulator.movement.NoMovement</class>
+        <class>br.ufla.dcc.grubix.simulator.movement.PingNoMovementManager</class>
     </movementmanager>
     
     <bitmanglingmodel>
@@ -53,7 +53,7 @@
                     <class>br.ufla.dcc.mac.backbone.CircularBackbone_MAC</class>
 <!--                    <class>br.ufla.dcc.grubix.simulator.node.user.MAC_IEEE802_11bg_DCF</class>-->
 <!--                    <params>-->
-<!--                        <param name="retryLimit">10</param>-->
+<!--                        <param name="setupDistanceFromCenter">true</param> -->
 <!--                        <param name="rateAdaption">AARF</param>-->
 <!--                        <param name="raUpLevel">10</param>-->
 <!--                        <param name="raDownLevel">2</param>-->
@@ -101,5 +101,5 @@
             <targetfile>startpositions.xml</targetfile>
         </generated>
     </positions>
-    <simulationtime stepspersecond="1000" base="seconds">30</simulationtime>
+    <simulationtime stepspersecond="1000" base="seconds">1000</simulationtime>
 </configuration>

@@ -85,6 +85,8 @@ import br.ufla.dcc.utils.Simulation;
 
 public class CircularBackbone_MAC extends MACLayer {
 
+	private static final Schedule DEFAULT_SCHEDULE = new Schedule(20, 1000);
+
 	private static final int BACKBONE_RADIUS = 100;
 
 	private static final String NODE_STATE = "NodeState";
@@ -244,11 +246,22 @@ public class CircularBackbone_MAC extends MACLayer {
 	 * @param start
 	 *            StartSimulation event to start the layer.
 	 */
+	private static final boolean DEBUG = true;
+
 	@Override
 	protected void processEvent(StartSimulation start) {
 		Address thisAddress = new Address(id, LayerType.MAC);
 		StatisticLogRequest slr = new StatisticLogRequest(thisAddress, getConfig().getSimulationSteps(1), DROPS_PER_SECOND);
 		sendEventSelf(slr);
+
+		if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
+						// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+			_distanceFromCenter = getNode().getPosition().getDistance(
+					new Position(Configuration.getInstance().getXSize() / 2, Configuration.getInstance().getYSize() / 2));
+
+			this.followSchedule(DEFAULT_SCHEDULE);
+
+		}
 
 		if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
 			__centerNode = getNode();
@@ -256,8 +269,17 @@ public class CircularBackbone_MAC extends MACLayer {
 			Simulation.Log.state("CenterNode", 1, __centerNode);
 			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
 
-			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
-			sendEventSelf(broadcastCenterFound);
+			if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
+							// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+			} else {
+
+				WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+				sendEventSelf(createSchedule);
+
+				WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
+				sendEventSelf(broadcastCenterFound);
+			}
 
 			BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
 			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 200, bbBuilderAgent);
@@ -438,7 +460,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private void sendLanPacket(WlanFramePacket goodnessPkt) {
 		applyDefaultBitrate(goodnessPkt);
-		sendPacket(goodnessPkt);
+		_outQueue.add(goodnessPkt);
+		// sendPacket(goodnessPkt);
 	}
 
 	private void applyDefaultBitrate(WlanFramePacket goodnessRequest) {
@@ -651,11 +674,6 @@ public class CircularBackbone_MAC extends MACLayer {
 		if (_propagationDelay != getConfig().getSimulationSteps(1.0e-7)) {
 			throw new SimulationFailedException("propagation delay is invalid for " + MAC_IEEE802_11bg_DCF.class.getName());
 		}
-
-		WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
-		sendEventSelf(createSchedule);
-
-		// scheduleWakeUp(SLEEP_CYCLE_SIZE);
 	}
 
 	/**
@@ -793,6 +811,8 @@ public class CircularBackbone_MAC extends MACLayer {
 		cle.forwardUp(this);
 	}
 
+	private static int PKT_COUNT = 0;
+
 	/**
 	 * internal method to handle MACCarrierSensing.
 	 * 
@@ -801,7 +821,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	 */
 	@SuppressWarnings({ "unused" })
 	private void process(MACCarrierSensing macCS) {
-
+		LOGGER.debug("Ending carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 		_pendingCS = false;
 
 		/*
@@ -830,6 +850,8 @@ public class CircularBackbone_MAC extends MACLayer {
 				_currentOutPacket.setReadyForTransmission(false);
 
 				_lastSent = getNode().getCurrentTime();
+
+				Simulation.Log.state("Paquet sent", PKT_COUNT++, getNode());
 				sendPacket(_currentOutPacket);
 
 				if (_pendingACK) {
@@ -1102,8 +1124,16 @@ public class CircularBackbone_MAC extends MACLayer {
 		scheduleWakeUp(__timing.getEntireCycleSize());
 
 		if (_outQueue.size() > 0) { // TODO - change this to verify if there is packets to send
+			LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 			WakeUpCall startSensing = new StartCarrierSensingWUC(getSender(), __timing.getListenPeriodForSync() + __timing.getContentionTime());
 			sendEventSelf(startSensing);
+			
+			
+			
+			STOPED HERE - NEXT STEP: CONFIGURE TIMING CORRECTLY
+			
+			
+			
 		}
 	}
 
@@ -1336,15 +1366,15 @@ public class CircularBackbone_MAC extends MACLayer {
 		 * trySend()is called.
 		 */
 
-		double now = getNode().getCurrentTime();
-		if (now > _lastTrySent) {
-			_lastTrySent = now;
-			// +++++++++++++ trySend(2); // #2#
-
-			if (!_pendingCS && !_willSendACK) {
-				// something is currently received, thus backoff is needed.
-				calcBackoffTime(0.0);
-			}
-		}
+		// double now = getNode().getCurrentTime();
+		// if (now > _lastTrySent) {
+		// _lastTrySent = now;
+		// // +++++++++++++ trySend(2); // #2#
+		//
+		// if (!_pendingCS && !_willSendACK) {
+		// // something is currently received, thus backoff is needed.
+		// calcBackoffTime(0.0);
+		// }
+		// }
 	}
 }
