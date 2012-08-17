@@ -277,12 +277,12 @@ public class CircularBackbone_MAC extends MACLayer {
 				WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
 				sendEventSelf(createSchedule);
 
-				WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, 100);
+				WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));
 				sendEventSelf(broadcastCenterFound);
 			}
 
 			BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
-			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 200, bbBuilderAgent);
+			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
 			sendEventSelf(broadcastBbBuilderAgent);
 		}
 	}
@@ -349,7 +349,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
 		sendLanPacket(goodnessRequest);
 
-		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), 100, findTarget.getAgent());
+		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), time(0.1), findTarget.getAgent());
 		sendEventSelf(disseminateAgent);
 	}
 
@@ -362,10 +362,10 @@ public class CircularBackbone_MAC extends MACLayer {
 			BbCircleBuilderAgent circleBuilder = rootFinderAgent.createBuilder();
 			Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
 
-			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, 20, circleBuilder);
+			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, time(0.02), circleBuilder);
 			sendEventSelf(forwardBackboneBuilder);
 		} else {
-			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, 20, rootFinderAgent);
+			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.02), rootFinderAgent);
 			sendEventSelf(broadcastBbBuilderAgent);
 		}
 
@@ -377,7 +377,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
 
-		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, 20, circleBuilder);
+		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, time(0.02), circleBuilder);
 		sendEventSelf(forwardBackboneBuilder);
 	}
 
@@ -392,7 +392,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
 		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
 
-		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), new Random().nextDouble() * 10, goodness);
+		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), new Random().nextDouble() * time(0.01), goodness);
 		sendEventSelf(sendGoodness);
 	}
 
@@ -488,7 +488,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		if (isDistanceFromCenterNotSet() || distanceFromCenter < getDistanceFromCenter()) {
 			setDistanceFromCenter(distanceFromCenter);
 
-			WakeUpCall broadcastDistanceFromCenter = new BroadcastDistanceFromCenter(myAddress(), new Random().nextInt(50));
+			WakeUpCall broadcastDistanceFromCenter = new BroadcastDistanceFromCenter(myAddress(), time(0.1));
 			sendEventSelf(broadcastDistanceFromCenter);
 		}
 
@@ -1127,13 +1127,8 @@ public class CircularBackbone_MAC extends MACLayer {
 			LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 			WakeUpCall startSensing = new StartCarrierSensingWUC(getSender(), __timing.getListenPeriodForSync() + __timing.getContentionTime());
 			sendEventSelf(startSensing);
-			
-			
-			
-			STOPED HERE - NEXT STEP: CONFIGURE TIMING CORRECTLY
-			
-			
-			
+
+			// STOPED HERE - NEXT STEP: CONFIGURE TIMING CORRECTLY
 		}
 	}
 
@@ -1376,5 +1371,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		// calcBackoffTime(0.0);
 		// }
 		// }
+	}
+
+	public double time(double seconds) {
+		return Configuration.getInstance().getSimulationSteps(seconds);
 	}
 }

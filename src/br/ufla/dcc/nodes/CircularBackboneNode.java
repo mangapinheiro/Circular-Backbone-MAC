@@ -137,6 +137,14 @@ public class CircularBackboneNode extends ApplicationLayer {
 	}
 
 	public void process(BroadcastDistanceFromCenter wuc) {
+		if (true) {
+			// &&&&&&&&&&&&&&&&&&&&&&& THIS IS FOR TESTING PURPOSE!!!!!!! &&&&&&&&&&&&&&&&&&&&&&&&&
+			// &&&&&&&&&&&&&&&&&&&&&&& REMOVE THIS IF FROM FINAL IMPLEMENTATION &&&&&&&&&&&&&&&&&&&
+
+			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(getSender(), Configuration.getInstance().getSimulationSteps(10));
+			sendEventSelf(broadcastCenterFound);
+		}
+
 		Packet centerPacket = new DistanceFromCenterPacket(getSender(), NodeId.ALLNODES, getDistanceFromCenter());
 		this.sendPacket(centerPacket);
 	}
