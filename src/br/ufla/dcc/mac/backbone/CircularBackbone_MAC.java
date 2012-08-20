@@ -79,6 +79,7 @@ import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.StartCarrierSensingWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.WakeUpWUC;
 import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
+import br.ufla.dcc.mac.packet.RTSPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
@@ -824,71 +825,65 @@ public class CircularBackbone_MAC extends MACLayer {
 		LOGGER.debug("Ending carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 		_pendingCS = false;
 
-		/*
-		 * like in lowerSAP, any change to this method requires, that trySend() will be called, after sending a packet, or after the decision not to
-		 * do so.
-		 */
+		WlanFramePacket packet;
+		if ((packet = _outQueue.peekFirst()) == null) {
+			LOGGER.warn("carrier sensing returned but no out packet present !");
+			return;
+		}
 
 		if (macCS.isNoCarrier()) {
-			if ((_currentOutPacket == null) && (_outQueue.size() > 0)) {
-				_currentOutPacket = _outQueue.removeFirst();
-			}
 
-			if (_currentOutPacket == null) {
-				LOGGER.warn("carrier sensing returned but no out packet present !");
+			preparePacketToBeSent(packet);
+
+			if (!isBroadcast(packet)) {
+				RTSPacket rts = new RTSPacket(myAddress(), packet.getReceiver());
+
+				// 2nd syncDuration already included in ackDelay !!!
+				double delay = packet.getDuration() + _ackDelay[packet.getBitrateIdx()];
+
+				WakeUpCall wakeUpCall = new MACProcessAckTimeout(sender, delay);
+				sendEventSelf(wakeUpCall);
 			} else {
-				_currentOutPacket.getRaPolicy().reset(getNode().getCurrentTime());
-
-				// immediateSend = true;
-
-				PacketType pType = _currentOutPacket.getType();
-				boolean toAllNodes = _currentOutPacket.getReceiver() == NodeId.ALLNODES;
-
-				_pendingACK = !toAllNodes && ((pType == PacketType.DATA) || (pType == PacketType.RTS));
-
-				_currentOutPacket.setAckRequested(_pendingACK);
-				_currentOutPacket.setReadyForTransmission(false);
-
-				_lastSent = getNode().getCurrentTime();
+				_outQueue.remove(packet);
+				sendPacket(packet);
 
 				Simulation.Log.state("Paquet sent", PKT_COUNT++, getNode());
-				sendPacket(_currentOutPacket);
-
-				if (_pendingACK) {
-					// 2nd syncDuration already included in ackDelay !!!
-					double delay = _currentOutPacket.getDuration() + _ackDelay[_currentOutPacket.getBitrateIdx()];
-
-					WakeUpCall wakeUpCall = new MACProcessAckTimeout(sender, delay);
-					sendEventSelf(wakeUpCall);
-				} else {
-					// since no ack expected, this is shoot and forget
-					_currentOutPacket = null;
-				}
-				/*
-				 * If the current packet is sent, a wakeup call will inform us and another trySend() will be issued.
-				 */
 			}
+
 		} else {
 			calcBackoffTime(macCS.getCsStart());
-			// +++++++++++++ trySend(6); // #6#
 		}
 	}
 
-	/**
-	 * Method to process the generic MACEvent. This is only used for a delayed trySend().
-	 * 
-	 * @param me
-	 *            the to be processed wakeup call.
-	 */
-	@SuppressWarnings("unused")
-	private void process(MACEvent wuc) {
-		boolean res = false; // +++++++++++++ this.trySend(5); // #5#
+	private void sendPacket(WlanFramePacket packet) {
+		_lastSent = getNode().getCurrentTime();
+		super.sendPacket(packet);
+	}
 
-		if (res) {
-			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("successfully initiate the delayed trySend()");
-			}
-		}
+	private void preparePacketToBeSent(WlanFramePacket packet) {
+		packet.getRaPolicy().reset(getNode().getCurrentTime());
+		packet.setAckRequested(packetNeedsAck(packet));
+		packet.setReadyForTransmission(false);
+	}
+
+	private boolean packetNeedsAck(WlanFramePacket packet) {
+		return !isBroadcast(packet) && (isDataPacket(packet) || isRTSPacket(packet));
+	}
+
+	private boolean isRTSPacket(WlanFramePacket packet) {
+		return isPacketOfType(packet, PacketType.RTS);
+	}
+
+	private boolean isPacketOfType(WlanFramePacket packet, PacketType rts) {
+		return packet.getType() == rts;
+	}
+
+	private boolean isBroadcast(WlanFramePacket packet) {
+		return packet.getReceiver() == NodeId.ALLNODES;
+	}
+
+	private boolean isDataPacket(WlanFramePacket packet) {
+		return isPacketOfType(packet, PacketType.DATA);
 	}
 
 	/**
@@ -1127,8 +1122,6 @@ public class CircularBackbone_MAC extends MACLayer {
 			LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 			WakeUpCall startSensing = new StartCarrierSensingWUC(getSender(), __timing.getListenPeriodForSync() + __timing.getContentionTime());
 			sendEventSelf(startSensing);
-
-			// STOPED HERE - NEXT STEP: CONFIGURE TIMING CORRECTLY
 		}
 	}
 
