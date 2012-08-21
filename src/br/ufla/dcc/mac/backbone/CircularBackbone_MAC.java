@@ -70,6 +70,7 @@ import br.ufla.dcc.mac.backbone.packet.SchedulePacket;
 import br.ufla.dcc.mac.backbone.state.CarrierSensing;
 import br.ufla.dcc.mac.backbone.state.Listening;
 import br.ufla.dcc.mac.backbone.state.NodeState;
+import br.ufla.dcc.mac.backbone.state.Sleeping;
 import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 import br.ufla.dcc.mac.backbone.wakeupcall.BroadcastScheduleDelayed;
 import br.ufla.dcc.mac.backbone.wakeupcall.CreateScheduleWUC;
@@ -78,6 +79,8 @@ import br.ufla.dcc.mac.backbone.wakeupcall.FindAgentTarget;
 import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.StartCarrierSensingWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.WakeUpWUC;
+import br.ufla.dcc.mac.packet.AckPacket;
+import br.ufla.dcc.mac.packet.CTSPacket;
 import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.mac.packet.RTSPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
@@ -474,6 +477,44 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	@SuppressWarnings("unused")
+	private void process(RTSPacket rts) {
+		if (!packetIsForThisNode(rts)) {
+			scheduleGoSleep(0);
+			return;
+		}
+
+		CTSPacket cts = new CTSPacket(myAddress(), rts.getSender().getId());
+		applyDefaultBitrate(cts);
+		Simulation.Log.state("PKT TYPE", 1, getNode());
+		sendPacket(cts);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(AckPacket ack) {
+		_outQueue.removeFirst();
+		_pendingACK = false;
+	}
+
+	@SuppressWarnings("unused")
+	private void process(CTSPacket cts) {
+		if (!packetIsForThisNode(cts)) {
+			scheduleGoSleep(0);
+			return;
+		}
+
+		WlanFramePacket outPacket = _outQueue.peekFirst();
+		_pendingACK = true;
+		applyDefaultBitrate(outPacket);
+		Simulation.Log.state("PKT TYPE", 2, getNode());
+		sendLanPacket(outPacket);
+
+		double delay = outPacket.getDuration() + _ackDelay[outPacket.getBitrateIdx()];
+
+		WakeUpCall wakeUpCall = new MACProcessAckTimeout(sender, delay);
+		sendEventSelf(wakeUpCall);
+	}
+
+	@SuppressWarnings("unused")
 	private void process(DistanceFromCenterPacket distancePacket) {
 		// TODO - REIMPLEMENT THIS METHOD USING SIGNAL STENGHT TO CALCULATE THE
 		// DISTANCE
@@ -700,9 +741,13 @@ public class CircularBackbone_MAC extends MACLayer {
 	@Override
 	public final void lowerSAP(Packet packet) {
 
-		if (!packetIsForThisNode(packet) && !packetIsForAllNodes(packet)) {
+		if (__NodeState.getClass().equals(Sleeping.class)) {
 			return;
 		}
+
+		// if (!packetIsForThisNode(packet) && !packetIsForAllNodes(packet)) {
+		// return;
+		// }
 
 		try {
 			Method declaredMethod = getClass().getDeclaredMethod("process", packet.getClass());
@@ -823,7 +868,6 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings({ "unused" })
 	private void process(MACCarrierSensing macCS) {
 		LOGGER.debug("Ending carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
-		_pendingCS = false;
 
 		WlanFramePacket packet;
 		if ((packet = _outQueue.peekFirst()) == null) {
@@ -837,12 +881,9 @@ public class CircularBackbone_MAC extends MACLayer {
 
 			if (!isBroadcast(packet)) {
 				RTSPacket rts = new RTSPacket(myAddress(), packet.getReceiver());
-
-				// 2nd syncDuration already included in ackDelay !!!
-				double delay = packet.getDuration() + _ackDelay[packet.getBitrateIdx()];
-
-				WakeUpCall wakeUpCall = new MACProcessAckTimeout(sender, delay);
-				sendEventSelf(wakeUpCall);
+				applyDefaultBitrate(rts);
+				Simulation.Log.state("PKT TYPE", 0, getNode());
+				sendPacket(rts);
 			} else {
 				_outQueue.remove(packet);
 				sendPacket(packet);
@@ -951,6 +992,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	 */
 	@SuppressWarnings("unused")
 	private void process(MACSendACK sendAck) {
+		Simulation.Log.state("PKT TYPE", 3, getNode());
 		sendPacket(sendAck.getAck());
 		/*
 		 * If this ack has left the building, an event will inform us and uppon handling of this event, trySend() will be issued.
@@ -1105,14 +1147,14 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(GoSleepWUC wakeUp) {
 		Simulation.Log.state(NODE_STATE, NodeState.SLEEPING, getNode());
-
+		__NodeState = new Sleeping();
 		// TODO - CHANGE THE STATE E CONFIGURE NODE
 	}
 
 	@SuppressWarnings("unused")
 	private void process(WakeUpWUC wakeUp) {
 		Simulation.Log.state(NODE_STATE, NodeState.AWAKEN, getNode());
-
+		__NodeState = new Listening();
 		// TODO - Change node state usin a StateManager
 
 		scheduleGoSleep(__timing.getAwakeCycleSize());

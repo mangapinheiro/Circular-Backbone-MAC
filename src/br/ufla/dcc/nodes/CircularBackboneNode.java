@@ -145,7 +145,8 @@ public class CircularBackboneNode extends ApplicationLayer {
 			sendEventSelf(broadcastCenterFound);
 		}
 
-		Packet centerPacket = new DistanceFromCenterPacket(getSender(), NodeId.ALLNODES, getDistanceFromCenter());
+		// Packet centerPacket = new DistanceFromCenterPacket(getSender(), NodeId.ALLNODES, getDistanceFromCenter());
+		Packet centerPacket = new DistanceFromCenterPacket(getSender(), getNode().getNeighbors().get(0).getId(), getDistanceFromCenter());
 		this.sendPacket(centerPacket);
 	}
 
