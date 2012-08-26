@@ -74,9 +74,9 @@
         <log>true</log>
         <nameHistoryFile>BackBoneBuildingProblem</nameHistoryFile>
         <nameStatisticsFile>StatiticsBackBoneBuildingProblem</nameStatisticsFile>
-<!--         <logClass>br.ufla.dcc.grubix.debug.compactlogging.XMLFileLogger</logClass> -->
+        <logClass>br.ufla.dcc.grubix.debug.compactlogging.XMLFileLogger</logClass>
         
-        <logClass>br.ufla.dcc.grubix.debug.compactlogging.CompactFileLogger</logClass>
+<!--         <logClass>br.ufla.dcc.grubix.debug.compactlogging.CompactFileLogger</logClass> -->
         <filter>
               <description>Sample filter</description>
               <logdata>true</logdata>
@@ -101,5 +101,5 @@
             <targetfile>startpositions.xml</targetfile>
         </generated>
     </positions>
-    <simulationtime stepspersecond="1000" base="seconds">1200</simulationtime>
+    <simulationtime stepspersecond="1000" base="seconds">120</simulationtime>
 </configuration>

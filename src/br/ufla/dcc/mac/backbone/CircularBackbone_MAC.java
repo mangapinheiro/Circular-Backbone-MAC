@@ -73,11 +73,13 @@ import br.ufla.dcc.mac.backbone.state.NodeState;
 import br.ufla.dcc.mac.backbone.state.Sleeping;
 import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 import br.ufla.dcc.mac.backbone.wakeupcall.BroadcastScheduleDelayed;
+import br.ufla.dcc.mac.backbone.wakeupcall.CTSFrameStartWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.CreateScheduleWUC;
+import br.ufla.dcc.mac.backbone.wakeupcall.DataFrameStartWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.DisseminateAgent;
 import br.ufla.dcc.mac.backbone.wakeupcall.FindAgentTarget;
 import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
-import br.ufla.dcc.mac.backbone.wakeupcall.StartCarrierSensingWUC;
+import br.ufla.dcc.mac.backbone.wakeupcall.RTSFrameStartWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.WakeUpWUC;
 import br.ufla.dcc.mac.packet.AckPacket;
 import br.ufla.dcc.mac.packet.CTSPacket;
@@ -86,6 +88,8 @@ import br.ufla.dcc.mac.packet.RTSPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
+
+//import br.ufla.dcc.mac.backbone.wakeupcall.StartCarrierSensingWUC;
 
 public class CircularBackbone_MAC extends MACLayer {
 
@@ -234,6 +238,16 @@ public class CircularBackbone_MAC extends MACLayer {
 	private final Map<Integer, SortedSet<NeighborGoodness>> _neighborGoodness = new HashMap<Integer, SortedSet<NeighborGoodness>>();
 	private final ArrayList<Integer> _knownAgents = new ArrayList<Integer>();
 
+	private PacketType __frameFor;
+
+	private boolean _willReceiveData;
+
+	private CTSPacket _ctsToSend;
+
+	private WakeUpCall _waitingForSleepTime;
+
+	private boolean _willSendData;
+
 	public CircularBackbone_MAC() {
 		/** constructor. */
 		_outQueue = new LinkedList<WlanFramePacket>();
@@ -343,7 +357,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(BroadcastDistanceFromCenter broadcastDistance) {
 		WlanFramePacket centerPacket = new DistanceFromCenterPacket(myAddress(), NodeId.ALLNODES, getDistanceFromCenter());
-		sendLanPacket(centerPacket);
+		// sendLanPacket(centerPacket);
 	}
 
 	@SuppressWarnings("unused")
@@ -351,7 +365,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		_neighborGoodness.put(findTarget.getAgent().getIdentifier(), new TreeSet<NeighborGoodness>());
 
 		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
-		sendLanPacket(goodnessRequest);
+		// sendLanPacket(goodnessRequest);
 
 		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), time(0.1), findTarget.getAgent());
 		sendEventSelf(disseminateAgent);
@@ -440,7 +454,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			agent.setSender(this.getSender());
 			agent.setupToForwardTo(chosenCandidate);
 
-			sendLanPacket(agent);
+			// sendLanPacket(agent);
 		} else {
 
 			// TODO - HANDLE "NO CANDIDATES FOUND"
@@ -462,11 +476,11 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	}
 
-	private void sendLanPacket(WlanFramePacket goodnessPkt) {
-		applyDefaultBitrate(goodnessPkt);
-		_outQueue.add(goodnessPkt);
-		// sendPacket(goodnessPkt);
-	}
+	// private void sendLanPacket(WlanFramePacket goodnessPkt) {
+	// applyDefaultBitrate(goodnessPkt);
+	// _outQueue.add(goodnessPkt);
+	// // sendPacket(goodnessPkt);
+	// }
 
 	private void applyDefaultBitrate(WlanFramePacket goodnessRequest) {
 		applyBitrate(goodnessRequest, -1);
@@ -479,14 +493,17 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(RTSPacket rts) {
 		if (!packetIsForThisNode(rts)) {
+			// TODO - Handle packets for other nodes
 			scheduleGoSleep(0);
 			return;
 		}
 
+		_willReceiveData = true;
+
 		CTSPacket cts = new CTSPacket(myAddress(), rts.getSender().getId());
 		applyDefaultBitrate(cts);
-		Simulation.Log.state("PKT TYPE", 1, getNode());
-		sendPacket(cts);
+
+		_ctsToSend = cts;
 	}
 
 	@SuppressWarnings("unused")
@@ -502,16 +519,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
-		WlanFramePacket outPacket = _outQueue.peekFirst();
-		_pendingACK = true;
-		applyDefaultBitrate(outPacket);
-		Simulation.Log.state("PKT TYPE", 2, getNode());
-		sendLanPacket(outPacket);
-
-		double delay = outPacket.getDuration() + _ackDelay[outPacket.getBitrateIdx()];
-
-		WakeUpCall wakeUpCall = new MACProcessAckTimeout(sender, delay);
-		sendEventSelf(wakeUpCall);
+		_willSendData = true;
 	}
 
 	@SuppressWarnings("unused")
@@ -775,23 +783,23 @@ public class CircularBackbone_MAC extends MACLayer {
 		 * On any modification of this method, please ensure, that trySend() will be called after the reception of a packet, since this might have
 		 * blocked a new outgoing packet from being sent.
 		 */
-		boolean doDropPacket = !packetIsForThisNode(packet) && !packetIsForAllNodes(packet);
+		boolean doDropPacket = !packetIsForThisNode(frame) && !packetIsForAllNodes(frame);
 		NodeId senderId = frame.getSender().getId();
 
-		if (doDropPacket && _promiscuous && !packet.isTerminal() && !senderId.equals(id)) {
+		if (doDropPacket && _promiscuous && !frame.isTerminal() && !senderId.equals(id)) {
 			doDropPacket = false;
 		}
 
 		if (doDropPacket) {
 			if (LOGGER.isDebugEnabled()) { // check if enabled to reduce
 											// performance impact
-				LOGGER.debug("Packet not for this node. Throwing away " + packet);
+				LOGGER.debug("Packet not for this node. Throwing away " + frame);
 			}
 			// advance queue after receiving neither a broadcast nor a packet
 			// for this node.
 			// +++++++++++++ trySend(0); // #0#
 		} else {
-			if (packetIsForThisNode(packet) && packet.isTerminal() && (frame.isControl())) {
+			if (packetIsForThisNode(frame) && frame.isTerminal() && (frame.isControl())) {
 				switch (frame.getType()) {
 				case ACK:
 					_pendingACK = false;
@@ -810,17 +818,18 @@ public class CircularBackbone_MAC extends MACLayer {
 				// MACProcessAckTimeout will handle this.
 			} else {
 
-				sendPacket(packet.getEnclosedPacket());
+				sendPacket(frame.getEnclosedPacket());
 
-				if (packetIsForThisNode(packet)) {
+				if (frame.isAckRequested()) {
 					_willSendACK = true;
 
-					ack = new WlanFramePacket(sender, packet.getSender().getId(), PacketType.ACK, frame.getSignalStrength());
+					ack = new AckPacket(sender, packet.getSender().getId(), frame.getSignalStrength());
 
 					applyBitrate(ack, frame.getBitrateIdx());
-
-					WakeUpCall wuc = new MACSendACK(sender, globalTimings.getSifs(), ack);
-					sendEventSelf(wuc);
+					sendPacket(ack);
+					//
+					// WakeUpCall wuc = new MACSendACK(sender, globalTimings.getSifs(), ack);
+					// sendEventSelf(wuc);
 
 					// no trySend() here, since any send prior the send of the
 					// ack makes no sense.
@@ -867,28 +876,64 @@ public class CircularBackbone_MAC extends MACLayer {
 	 */
 	@SuppressWarnings({ "unused" })
 	private void process(MACCarrierSensing macCS) {
-		LOGGER.debug("Ending carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 
-		WlanFramePacket packet;
-		if ((packet = _outQueue.peekFirst()) == null) {
-			LOGGER.warn("carrier sensing returned but no out packet present !");
-			return;
-		}
+		LOGGER.debug("Ending carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 
 		if (macCS.isNoCarrier()) {
 
-			preparePacketToBeSent(packet);
+			WlanFramePacket packet;
 
-			if (!isBroadcast(packet)) {
+			packet = _outQueue.peekFirst();
+
+			switch (__frameFor) {
+			case CONTROL:
+				// TODO - HANDLE; CTS; RTS; CONTROL; SYNCH
+				// asdfhjka;dsfhjklasdfhjkalsdfhjkalsdfhjkalsdfhjkalsdfhjklasdfhjklasdgjkl;fdshkl;gfdklh;fgdksl;gjsdklajfkldsajklf'jdskal'fjkldsajlfjuiotreuiwogjrioewuio
+				break;
+
+			case RTS:
+
 				RTSPacket rts = new RTSPacket(myAddress(), packet.getReceiver());
 				applyDefaultBitrate(rts);
-				Simulation.Log.state("PKT TYPE", 0, getNode());
 				sendPacket(rts);
-			} else {
-				_outQueue.remove(packet);
+
+				break;
+
+			case CTS:
+
+				if (_ctsToSend != null) {
+					applyDefaultBitrate(_ctsToSend);
+					sendPacket(_ctsToSend);
+					_ctsToSend = null;
+				}
+
+				break;
+
+			case DATA:
+
+				if (packet == null) {
+					LOGGER.warn("carrier sensing returned but no out packet present !");
+					return;
+				}
+
+				preparePacketToBeSent(packet);
 				sendPacket(packet);
 
+				if (_pendingACK = packet.isAckRequested()) {
+
+					double delay = packet.getDuration() + _ackDelay[packet.getBitrateIdx()];
+
+					WakeUpCall wakeUpCall = new MACProcessAckTimeout(sender, delay);
+					sendEventSelf(wakeUpCall);
+				}
+
 				Simulation.Log.state("Paquet sent", PKT_COUNT++, getNode());
+
+				break;
+			default:
+				LOGGER.error("Carrier sensing for " + __frameFor + " frame not implemented!!!");
+
+				break;
 			}
 
 		} else {
@@ -897,6 +942,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void sendPacket(WlanFramePacket packet) {
+		Simulation.Log.state("PKT TYPE", packet.getType().ordinal(), getNode());
 		_lastSent = getNode().getCurrentTime();
 		super.sendPacket(packet);
 	}
@@ -904,7 +950,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void preparePacketToBeSent(WlanFramePacket packet) {
 		packet.getRaPolicy().reset(getNode().getCurrentTime());
 		packet.setAckRequested(packetNeedsAck(packet));
-		packet.setReadyForTransmission(false);
+		packet.setReadyForTransmission(true);
 	}
 
 	private boolean packetNeedsAck(WlanFramePacket packet) {
@@ -992,7 +1038,6 @@ public class CircularBackbone_MAC extends MACLayer {
 	 */
 	@SuppressWarnings("unused")
 	private void process(MACSendACK sendAck) {
-		Simulation.Log.state("PKT TYPE", 3, getNode());
 		sendPacket(sendAck.getAck());
 		/*
 		 * If this ack has left the building, an event will inform us and uppon handling of this event, trySend() will be issued.
@@ -1146,8 +1191,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(GoSleepWUC wakeUp) {
-		Simulation.Log.state(NODE_STATE, NodeState.SLEEPING, getNode());
-		__NodeState = new Sleeping();
+		if (_waitingForSleepTime == wakeUp) {
+			Simulation.Log.state(NODE_STATE, NodeState.SLEEPING, getNode());
+			__NodeState = new Sleeping();
+		}
 		// TODO - CHANGE THE STATE E CONFIGURE NODE
 	}
 
@@ -1155,22 +1202,64 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void process(WakeUpWUC wakeUp) {
 		Simulation.Log.state(NODE_STATE, NodeState.AWAKEN, getNode());
 		__NodeState = new Listening();
+		__frameFor = PacketType.CONTROL;
+
 		// TODO - Change node state usin a StateManager
 
-		scheduleGoSleep(__timing.getAwakeCycleSize());
-		scheduleWakeUp(__timing.getEntireCycleSize());
+		// scheduleGoSleep(__timing.getAwakeCycleSize());
 
-		if (_outQueue.size() > 0) { // TODO - change this to verify if there is packets to send
-			LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
-			WakeUpCall startSensing = new StartCarrierSensingWUC(getSender(), __timing.getListenPeriodForSync() + __timing.getContentionTime());
-			sendEventSelf(startSensing);
+		WakeUpCall waitRTS = new RTSFrameStartWUC(getSender(), __timing.getListenPeriodForSync());
+		sendEventSelf(waitRTS);
+
+		WakeUpCall waitCTS = new CTSFrameStartWUC(getSender(), waitRTS.getDelay() + __timing.getListenPeriodForRTS());
+		sendEventSelf(waitCTS);
+
+		WakeUpCall waitForDataOrGoToSleep = new DataFrameStartWUC(getSender(), waitCTS.getDelay() + __timing.getListenPeriodForCTS());
+		sendEventSelf(waitForDataOrGoToSleep);
+
+		scheduleWakeUp(__timing.getEntireCycleSize());
+	}
+
+	@SuppressWarnings("unused")
+	private void process(RTSFrameStartWUC event) {
+		__frameFor = PacketType.RTS;
+
+		if (_outQueue.size() > 0) {
+			startCarrierSense(__timing.getDifs(), __timing.getContentionTime());
+		}
+	}
+
+	@Override
+	public void startCarrierSense(double minFreeTime, double varFreeTime) {
+		LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
+		__NodeState = new CarrierSensing(); // TODO - Change this to a state manager
+		super.startCarrierSense(0, varFreeTime);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(CTSFrameStartWUC event) {
+		__frameFor = PacketType.CTS;
+
+		if (_ctsToSend != null) {// TODO - Start carrier sensing here
+			startCarrierSense(__timing.getDifs(), __timing.getContentionTime());
 		}
 	}
 
 	@SuppressWarnings("unused")
-	private void process(StartCarrierSensingWUC event) {
-		__NodeState = new CarrierSensing(); // TODO - Change this to a state manager
-		startCarrierSense(__timing.getDifs(), 0.0);
+	private void process(DataFrameStartWUC event) {
+		__frameFor = PacketType.DATA;
+
+		if (!_willReceiveData && !_willSendData) {
+			scheduleGoSleep(0);
+		} else {
+			scheduleGoSleep(__timing.getAwakeCycleSize());
+		}
+
+		if (_willSendData) {
+			startCarrierSense(__timing.getDifs(), __timing.getContentionTime());
+		}
+
+		_willSendData = _willReceiveData = false;
 	}
 
 	/**
@@ -1256,6 +1345,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private void scheduleGoSleep(double delayInSteps) {
 		WakeUpCall goSleep = new GoSleepWUC(myAddress(), delayInSteps);
+		_waitingForSleepTime = goSleep;
 		sendEventSelf(goSleep);
 	}
 

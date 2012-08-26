@@ -3,6 +3,7 @@ package br.ufla.dcc.nodes;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -25,9 +26,9 @@ import br.ufla.dcc.grubix.simulator.node.ApplicationLayer;
 import br.ufla.dcc.grubix.simulator.node.Node;
 import br.ufla.dcc.mac.packet.BbBuilderAgentPacket;
 import br.ufla.dcc.mac.packet.BbCandidatesGoodnessRequestPacket;
-import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.mac.packet.GoodnessPacket;
 import br.ufla.dcc.mac.packet.RefuseAgentPacket;
+import br.ufla.dcc.mac.test.packet.InfiniteForwardPacket;
 import br.ufla.dcc.packet.AgentPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
@@ -137,17 +138,31 @@ public class CircularBackboneNode extends ApplicationLayer {
 	}
 
 	public void process(BroadcastDistanceFromCenter wuc) {
-		if (true) {
-			// &&&&&&&&&&&&&&&&&&&&&&& THIS IS FOR TESTING PURPOSE!!!!!!! &&&&&&&&&&&&&&&&&&&&&&&&&
-			// &&&&&&&&&&&&&&&&&&&&&&& REMOVE THIS IF FROM FINAL IMPLEMENTATION &&&&&&&&&&&&&&&&&&&
-
-			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(getSender(), Configuration.getInstance().getSimulationSteps(10));
-			sendEventSelf(broadcastCenterFound);
-		}
+		// if (true) {
+		// // &&&&&&&&&&&&&&&&&&&&&&& THIS IS FOR TESTING PURPOSE!!!!!!! &&&&&&&&&&&&&&&&&&&&&&&&&
+		// // &&&&&&&&&&&&&&&&&&&&&&& REMOVE THIS IF FROM FINAL IMPLEMENTATION &&&&&&&&&&&&&&&&&&&
+		//
+		// WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(getSender(), Configuration.getInstance().getSimulationSteps(10));
+		// sendEventSelf(broadcastCenterFound);
+		// }
 
 		// Packet centerPacket = new DistanceFromCenterPacket(getSender(), NodeId.ALLNODES, getDistanceFromCenter());
-		Packet centerPacket = new DistanceFromCenterPacket(getSender(), getNode().getNeighbors().get(0).getId(), getDistanceFromCenter());
-		this.sendPacket(centerPacket);
+		// Packet centerPacket = new DistanceFromCenterPacket(getSender(), getNode().getNeighbors().get(0).getId(), getDistanceFromCenter());
+		// this.sendPacket(centerPacket);
+
+		Packet infinitForward = new InfiniteForwardPacket(getSender(), getNode().getNeighbors()
+				.get(Math.abs(new Random().nextInt()) % getNode().getNeighborCount()).getId());
+		this.sendPacket(infinitForward);
+	}
+
+	public void process(InfiniteForwardPacket pkt) {
+		// Packet centerPacket = new DistanceFromCenterPacket(getSender(), NodeId.ALLNODES, getDistanceFromCenter());
+		// Packet centerPacket = new DistanceFromCenterPacket(getSender(), getNode().getNeighbors().get(0).getId(), getDistanceFromCenter());
+		// this.sendPacket(centerPacket);
+
+		Packet infinitForward = new InfiniteForwardPacket(getSender(), getNode().getNeighbors()
+				.get(Math.abs(new Random().nextInt()) % getNode().getNeighborCount()).getId());
+		this.sendPacket(infinitForward);
 	}
 
 	private double getDistanceFromCenter() {
