@@ -264,7 +264,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	 * @param start
 	 *            StartSimulation event to start the layer.
 	 */
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	@Override
 	protected void processEvent(StartSimulation start) {
@@ -279,6 +279,9 @@ public class CircularBackbone_MAC extends MACLayer {
 
 			this.followSchedule(DEFAULT_SCHEDULE);
 
+		} else {
+			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+			sendEventSelf(createSchedule);
 		}
 
 		if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
@@ -292,10 +295,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 			} else {
 
-				WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
-				sendEventSelf(createSchedule);
+				// WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+				// sendEventSelf(createSchedule);
 
-				WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));
+				WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));// TODO - Adjust this timing
 				sendEventSelf(broadcastCenterFound);
 			}
 
@@ -357,7 +360,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(BroadcastDistanceFromCenter broadcastDistance) {
 		WlanFramePacket centerPacket = new DistanceFromCenterPacket(myAddress(), NodeId.ALLNODES, getDistanceFromCenter());
-		// sendLanPacket(centerPacket);
+		sendLanPacket(centerPacket);
 	}
 
 	@SuppressWarnings("unused")
@@ -476,11 +479,11 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	}
 
-	// private void sendLanPacket(WlanFramePacket goodnessPkt) {
-	// applyDefaultBitrate(goodnessPkt);
-	// _outQueue.add(goodnessPkt);
-	// // sendPacket(goodnessPkt);
-	// }
+	private void sendLanPacket(WlanFramePacket goodnessPkt) {
+		// applyDefaultBitrate(goodnessPkt);
+		_outQueue.add(goodnessPkt);
+		// sendPacket(goodnessPkt);
+	}
 
 	private void applyDefaultBitrate(WlanFramePacket goodnessRequest) {
 		applyBitrate(goodnessRequest, -1);

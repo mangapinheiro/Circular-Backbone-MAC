@@ -74,9 +74,9 @@
         <log>true</log>
         <nameHistoryFile>BackBoneBuildingProblem</nameHistoryFile>
         <nameStatisticsFile>StatiticsBackBoneBuildingProblem</nameStatisticsFile>
-        <logClass>br.ufla.dcc.grubix.debug.compactlogging.XMLFileLogger</logClass>
+<!--         <logClass>br.ufla.dcc.grubix.debug.compactlogging.XMLFileLogger</logClass> -->
         
-<!--         <logClass>br.ufla.dcc.grubix.debug.compactlogging.CompactFileLogger</logClass> -->
+        <logClass>br.ufla.dcc.grubix.debug.compactlogging.CompactFileLogger</logClass>
         <filter>
               <description>Sample filter</description>
               <logdata>true</logdata>

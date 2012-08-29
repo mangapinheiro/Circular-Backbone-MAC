@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- ShoX XML-statisticsfile, created Sun Aug 26 16:28:48 BRT 2012 by br.ufla.dcc.grubix.debug.compactlogging.XMLFileLogger -->
+<!-- ShoX XML-statisticsfile, created Tue Aug 28 21:41:41 BRT 2012 by br.ufla.dcc.grubix.debug.compactlogging.XMLFileLogger -->
 <statistics>
 <statistic>
 <senderid>105</senderid>
@@ -1208,12 +1208,6 @@
 <value x="1002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>91</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="1489.9039705361201" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -4814,12 +4808,6 @@
 <value x="4002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>77</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="4489.89549162754" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -8418,12 +8406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="7002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>76</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="7489.857376892136" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -12024,12 +12006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="10002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>90</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="10489.86288838486" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -15630,12 +15606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="13002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>91</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="13489.914546945454" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -19238,12 +19208,6 @@
 <value x="16002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>104</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="16489.886504140908" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -22844,12 +22808,6 @@
 <value x="19002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>118</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="19489.92329968415" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -26448,12 +26406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="22002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>105</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="22489.91646885232" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -30054,12 +30006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="25002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>104</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="25489.91986659792" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -33660,12 +33606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="28002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>103</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="28489.867779601762" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -37268,12 +37208,6 @@
 <value x="31002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>116</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="31489.84058117154" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -40874,12 +40808,6 @@
 <value x="34002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>130</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="34489.84233737634" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -44478,12 +44406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="37002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>129</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="37489.88237499433" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -48084,12 +48006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="40002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>114</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="40489.90962157129" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -51690,12 +51606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="43002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>115</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="43489.85707313576" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -55298,12 +55208,6 @@
 <value x="46002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>114</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="46489.857176259175" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -58904,12 +58808,6 @@
 <value x="49002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>128</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="49489.87840893199" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -62508,12 +62406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="52002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>129</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="52489.9184969518" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -66114,12 +66006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="55002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>143</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="55489.86843252046" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -69720,12 +69606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="58002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>157</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="58489.89303265798" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -73328,12 +73208,6 @@
 <value x="61002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>143</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="61489.83026012795" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -76934,12 +76808,6 @@
 <value x="64002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>142</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="64489.88001623646" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -80538,12 +80406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="67002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>143</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="67489.8827809043" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -84144,12 +84006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="70002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>158</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="70489.9235535199" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -87750,12 +87606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="73002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>159</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="73489.90807152391" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -91358,12 +91208,6 @@
 <value x="76002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>173</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="76489.88437387667" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -94964,12 +94808,6 @@
 <value x="79002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>172</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="79489.90911974321" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -98568,12 +98406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="82002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>173</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="82489.91709437138" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -102174,12 +102006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="85002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>159</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="85489.8914680556" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -105780,12 +105606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="88002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>158</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="88489.89868662463" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -109388,12 +109208,6 @@
 <value x="91002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>172</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="91489.86218625306" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -112994,12 +112808,6 @@
 <value x="94002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>187</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="94489.86165743426" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -116598,12 +116406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="97002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>186</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="97489.91998373794" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -120204,12 +120006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="100002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>200</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="100489.87654665629" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -123810,12 +123606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="103002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>186</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="103489.89528260117" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -127418,12 +127208,6 @@
 <value x="106002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>199</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="106489.87468091224" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -131024,12 +130808,6 @@
 <value x="109002.0" y="0" />
 </statistic>
 <statistic>
-<senderid>186</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="109489.88488212603" y="1.0" />
-</statistic>
-<statistic>
 <senderid>1</senderid>
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
@@ -134628,12 +134406,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="112002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>187</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="112489.83036010554" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -138234,12 +138006,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="115002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>188</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="115489.92583359862" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
@@ -141840,12 +141606,6 @@
 <senderlayer>MAC</senderlayer>
 <axes x="time" y="Dropped Packets / s" />
 <value x="118002.0" y="0" />
-</statistic>
-<statistic>
-<senderid>173</senderid>
-<senderlayer>Network</senderlayer>
-<axes x="time" y="Hop Count" />
-<value x="118489.83814269867" y="1.0" />
 </statistic>
 <statistic>
 <senderid>1</senderid>
