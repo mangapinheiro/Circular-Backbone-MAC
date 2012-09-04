@@ -1,7 +1,5 @@
 package br.ufla.dcc.mac.backbone;
 
-import java.util.Random;
-
 public class Schedule {
 
 	private static int __id = 0;
@@ -11,12 +9,10 @@ public class Schedule {
 
 	private final double _creationTime;
 
-	private final Random _random = new Random();
-
-	public Schedule(double creationTime, double delayToSleep) {
+	public Schedule(double creationTime, double sleepCycleSize) {
 		_id = __id++;
 		_creationTime = creationTime;
-		_delay = _random.nextDouble() * delayToSleep;
+		_delay = sleepCycleSize;
 	}
 
 	public double getCreationTime() {

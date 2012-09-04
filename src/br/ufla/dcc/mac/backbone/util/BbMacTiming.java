@@ -160,7 +160,7 @@ public class BbMacTiming {
 		return _configuration.getSimulationSteps(LISTEN_PERIOD_FOR_RTS_IN_SECONDS + LISTEN_PERIOD_FOR_RTS_IN_SECONDS);
 	}
 
-	public double getContentionTime() {
+	public double getRandomContentionTime() {
 		return RANDOM.nextDouble() * 0.1;
 	}
 

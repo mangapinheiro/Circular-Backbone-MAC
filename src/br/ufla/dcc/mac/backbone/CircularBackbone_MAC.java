@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -230,6 +231,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	private NodeState __NodeState;
 
 	private final List<Schedule> __schedules;
+	private final Map<Schedule, Set<NodeId>> __knownNeighbors;
 
 	private double _distanceFromCenter = -1;
 
@@ -248,6 +250,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private boolean _willSendData;
 
+	private Schedule __currentSchedule;
+
 	public CircularBackbone_MAC() {
 		/** constructor. */
 		_outQueue = new LinkedList<WlanFramePacket>();
@@ -256,6 +260,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		__NodeState = new Listening();
 		__schedules = new ArrayList<Schedule>();
+		__knownNeighbors = new HashMap<Schedule, Set<NodeId>>();
 	}
 
 	/**
@@ -274,10 +279,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
 						// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-			_distanceFromCenter = getNode().getPosition().getDistance(
-					new Position(Configuration.getInstance().getXSize() / 2, Configuration.getInstance().getYSize() / 2));
-
-			this.followSchedule(DEFAULT_SCHEDULE);
+						// _distanceFromCenter = getNode().getPosition().getDistance(
+			// new Position(Configuration.getInstance().getXSize() / 2, Configuration.getInstance().getYSize() / 2));
+			//
+			// this.followSchedule(DEFAULT_SCHEDULE);
 
 		} else {
 			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
@@ -496,8 +501,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(RTSPacket rts) {
 		if (!packetIsForThisNode(rts)) {
-			// TODO - Handle packets for other nodes
-			scheduleGoSleep(0);
+			goSleepNow();
 			return;
 		}
 
@@ -518,7 +522,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(CTSPacket cts) {
 		if (!packetIsForThisNode(cts)) {
-			scheduleGoSleep(0);
+			goSleepNow();
 			return;
 		}
 
@@ -583,10 +587,10 @@ public class CircularBackbone_MAC extends MACLayer {
 	// #################################################################################################################
 
 	private void broadcastSchedule(Schedule schedule, double delay) {
-		if (thisNodeHasMultipleSchedules()) {
-			// don't propagate
-			return;
-		}
+		// if (thisNodeHasMultipleSchedules()) {
+		// // don't propagate
+		// return;
+		// }
 
 		SchedulePacket schedulePacket = new SchedulePacket(myAddress(), NodeId.ALLNODES, schedule);
 
@@ -628,16 +632,37 @@ public class CircularBackbone_MAC extends MACLayer {
 		}
 	}
 
+	private void acceptSchedule(SchedulePacket schedulePacket) {
+		followSchedule(schedulePacket.getSchedule());
+		registerNeighbor(schedulePacket);
+		goSleepNow();
+	}
+
+	private void goSleepNow() {
+		scheduleGoSleep(0);
+	}
+
 	private void followSchedule(Schedule schedule) {
-		// TODO CONFIGURE THE NODE TO FOLOW A SCHEDULE (create WakeUp and
-		// GoSleep wake up calls)
+
 		if (!hasSchedule()) {
 			Simulation.Log.state("Schedule", schedule.getId(), getNode());
 		} else {
 			Simulation.Log.state("Margin", schedule.getId(), getNode());
 		}
 		__schedules.add(schedule);
-		this.scheduleWakeUp(schedule.getDelay(SimulationManager.getInstance().getCurrentTime()));
+
+		scheduleWakeUpForSchedule(schedule);
+	}
+
+	private void registerNeighbor(SchedulePacket schedulePacket) {
+		Set<NodeId> neighborsForSchedule = __knownNeighbors.get(schedulePacket.getSchedule());
+
+		if (neighborsForSchedule == null) {
+			neighborsForSchedule = new TreeSet<NodeId>();
+			__knownNeighbors.put(schedulePacket.getSchedule(), neighborsForSchedule);
+		}
+
+		neighborsForSchedule.add(schedulePacket.getSender().getId());
 	}
 
 	/**
@@ -890,8 +915,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 			switch (__frameFor) {
 			case CONTROL:
-				// TODO - HANDLE; CTS; RTS; CONTROL; SYNCH
-				// asdfhjka;dsfhjklasdfhjkalsdfhjkalsdfhjkalsdfhjkalsdfhjklasdfhjklasdgjkl;fdshkl;gfdklh;fgdksl;gjsdklajfkldsajklf'jdskal'fjkldsajlfjuiotreuiwogjrioewuio
+				if (__currentSchedule != null) {
+					broadcastSchedule(__currentSchedule);
+				}
+
 				break;
 
 			case RTS:
@@ -1142,17 +1169,18 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	@SuppressWarnings("unused")
-	private void process(SchedulePacket packet) {
-		if (!hasSchedule()) {
-			followSchedule(packet.getSchedule());
-			broadcastSchedule(packet.getSchedule(), __timing.getContentionTime());
-		}
+	private void process(SchedulePacket schedulePacket) {
+		// if (!hasSchedule()) {
+		// acceptSchedule(schedulePacket);
+		// // broadcastSchedule(packet.getSchedule(), __timing.getRandomContentionTime());
+		// return;
+		// }
 
-		if (isFollowingSchedule(packet.getSchedule())) {
+		if (isFollowingSchedule(schedulePacket.getSchedule())) {
 			return;
 		}
 
-		followSchedule(packet.getSchedule());
+		acceptSchedule(schedulePacket);
 	}
 
 	private void broadcastSchedule(Schedule schedule) {
@@ -1206,10 +1234,12 @@ public class CircularBackbone_MAC extends MACLayer {
 		Simulation.Log.state(NODE_STATE, NodeState.AWAKEN, getNode());
 		__NodeState = new Listening();
 		__frameFor = PacketType.CONTROL;
+		__currentSchedule = wakeUp.getSchedule();
 
-		// TODO - Change node state usin a StateManager
+		// TODO - Change node state using a StateManager
 
 		// scheduleGoSleep(__timing.getAwakeCycleSize());
+		startCarrierSense(0, time(__timing.getRandomContentionTime()));
 
 		WakeUpCall waitRTS = new RTSFrameStartWUC(getSender(), __timing.getListenPeriodForSync());
 		sendEventSelf(waitRTS);
@@ -1220,7 +1250,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		WakeUpCall waitForDataOrGoToSleep = new DataFrameStartWUC(getSender(), waitCTS.getDelay() + __timing.getListenPeriodForCTS());
 		sendEventSelf(waitForDataOrGoToSleep);
 
-		scheduleWakeUp(__timing.getEntireCycleSize());
+		scheduleWakeUpForSchedule(__currentSchedule);
 	}
 
 	@SuppressWarnings("unused")
@@ -1228,7 +1258,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		__frameFor = PacketType.RTS;
 
 		if (_outQueue.size() > 0) {
-			startCarrierSense(__timing.getDifs(), __timing.getContentionTime());
+			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
 		}
 	}
 
@@ -1244,7 +1274,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		__frameFor = PacketType.CTS;
 
 		if (_ctsToSend != null) {// TODO - Start carrier sensing here
-			startCarrierSense(__timing.getDifs(), __timing.getContentionTime());
+			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
 		}
 	}
 
@@ -1253,13 +1283,13 @@ public class CircularBackbone_MAC extends MACLayer {
 		__frameFor = PacketType.DATA;
 
 		if (!_willReceiveData && !_willSendData) {
-			scheduleGoSleep(0);
+			goSleepNow();
 		} else {
 			scheduleGoSleep(__timing.getAwakeCycleSize());
 		}
 
 		if (_willSendData) {
-			startCarrierSense(__timing.getDifs(), __timing.getContentionTime());
+			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
 		}
 
 		_willSendData = _willReceiveData = false;
@@ -1352,8 +1382,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		sendEventSelf(goSleep);
 	}
 
-	private void scheduleWakeUp(double delayInSteps) {
-		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayInSteps);
+	private void scheduleWakeUpForSchedule(Schedule schedule) {
+		double delayInSteps = schedule.getDelay(SimulationManager.getInstance().getCurrentTime());
+		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayInSteps, schedule);
 		sendEventSelf(wakeUp);
 	}
 
