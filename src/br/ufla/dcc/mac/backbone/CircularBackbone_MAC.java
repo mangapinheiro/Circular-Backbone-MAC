@@ -86,7 +86,6 @@ import br.ufla.dcc.mac.packet.AckPacket;
 import br.ufla.dcc.mac.packet.CTSPacket;
 import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.mac.packet.RTSPacket;
-import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
 
@@ -252,6 +251,16 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private Schedule __currentSchedule;
 
+	/**
+	 * Method to start this layer.
+	 * 
+	 * @param start
+	 *            StartSimulation event to start the layer.
+	 */
+	private static final boolean DEBUG = false;
+
+	private static int PKT_COUNT = 0;
+
 	public CircularBackbone_MAC() {
 		/** constructor. */
 		_outQueue = new LinkedList<WlanFramePacket>();
@@ -263,14 +272,6 @@ public class CircularBackbone_MAC extends MACLayer {
 		__knownNeighbors = new HashMap<Schedule, Set<NodeId>>();
 	}
 
-	/**
-	 * Method to start this layer.
-	 * 
-	 * @param start
-	 *            StartSimulation event to start the layer.
-	 */
-	private static final boolean DEBUG = false;
-
 	@Override
 	protected void processEvent(StartSimulation start) {
 		Address thisAddress = new Address(id, LayerType.MAC);
@@ -279,104 +280,54 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
 						// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-						// _distanceFromCenter = getNode().getPosition().getDistance(
-			// new Position(Configuration.getInstance().getXSize() / 2, Configuration.getInstance().getYSize() / 2));
-			//
-			// this.followSchedule(DEFAULT_SCHEDULE);
+			_distanceFromCenter = getNode().getPosition().getDistance(
+					new Position(Configuration.getInstance().getXSize() / 2, Configuration.getInstance().getYSize() / 2));
+
+			this.followSchedule(DEFAULT_SCHEDULE);
 
 		} else {
-			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize() * 3);
 			sendEventSelf(createSchedule);
 		}
 
-		if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
-			__centerNode = getNode();
-			_distanceFromCenter = 0;
-			Simulation.Log.state("CenterNode", 1, __centerNode);
-			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
-
-			if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
-							// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-
-			} else {
-
-				// WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
-				// sendEventSelf(createSchedule);
-
-				WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));// TODO - Adjust this timing
-				sendEventSelf(broadcastCenterFound);
-			}
-
-			BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
-			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
-			sendEventSelf(broadcastBbBuilderAgent);
-		}
-	}
-
-	private boolean isThereACenterNode() {
-		return __centerNode != null;
-	}
-
-	private boolean verifyCenter(Position position) {
-		if (isThereACenterNode()) {
-			return false;
-		}
-
-		double nodeX = position.getXCoord();
-		double nodeY = position.getYCoord();
-
-		double fieldSizeX = Configuration.getInstance().getXSize();
-		double fieldSizeY = Configuration.getInstance().getYSize();
-
-		double fieldVarianceX = fieldSizeX * .05;
-		double fieldVarianceY = fieldSizeY * .05;
-
-		double centerX = fieldSizeX / 2;
-		double centerY = fieldSizeY / 2;
-
-		if (centerX - fieldVarianceX < nodeX && nodeX < centerX + fieldVarianceX) {
-			if (centerY - fieldVarianceY < nodeY && nodeY < centerY + fieldVarianceY) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	public double getDistanceFromCenter() {
-		return _distanceFromCenter;
-	}
-
-	private void setDistanceFromCenter(double distanceFromCenter) {
-		_distanceFromCenter = distanceFromCenter;
-		Simulation.Log.state("Radius", _distanceFromCenter, getNode());
-
-		int backboneRadius = 100;
-		int variation = 15;
-
-		if (_distanceFromCenter > backboneRadius - variation && _distanceFromCenter < backboneRadius + variation) {
-			Simulation.Log.state("Backbone Range", 4, getNode());
-		} else {
-			Simulation.Log.state("Backbone Range", 7, getNode());
-		}
-
+		// if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
+		// __centerNode = getNode();
+		// _distanceFromCenter = 0;
+		// Simulation.Log.state("CenterNode", 1, __centerNode);
+		// Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
+		//
+		// if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
+		// // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+		//
+		// } else {
+		//
+		// // WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+		// // sendEventSelf(createSchedule);
+		//
+		// WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));// TODO - Adjust this timing
+		// sendEventSelf(broadcastCenterFound);
+		// }
+		//
+		// BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
+		// WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
+		// sendEventSelf(broadcastBbBuilderAgent);
+		// }
 	}
 
 	@SuppressWarnings("unused")
-	private void process(BroadcastDistanceFromCenter broadcastDistance) {
-		WlanFramePacket centerPacket = new DistanceFromCenterPacket(myAddress(), NodeId.ALLNODES, getDistanceFromCenter());
-		sendLanPacket(centerPacket);
+	private void process(AckPacket ack) {
+		_outQueue.removeFirst();
+		_pendingACK = false;
 	}
 
 	@SuppressWarnings("unused")
-	private void process(FindAgentTarget findTarget) {
-		_neighborGoodness.put(findTarget.getAgent().getIdentifier(), new TreeSet<NeighborGoodness>());
+	private void process(BbCircleBuilderAgent circleBuilder) {
+		Simulation.Log.state("Visited by agent", circleBuilder.getIdentifier(), getNode());
 
-		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
-		// sendLanPacket(goodnessRequest);
+		Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
 
-		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), time(0.1), findTarget.getAgent());
-		sendEventSelf(disseminateAgent);
+		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, time(0.02), circleBuilder);
+		sendEventSelf(forwardBackboneBuilder);
 	}
 
 	@SuppressWarnings("unused")
@@ -398,59 +349,76 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	@SuppressWarnings("unused")
-	private void process(BbCircleBuilderAgent circleBuilder) {
-		Simulation.Log.state("Visited by agent", circleBuilder.getIdentifier(), getNode());
-
-		Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
-
-		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, time(0.02), circleBuilder);
-		sendEventSelf(forwardBackboneBuilder);
+	private void process(BroadcastDistanceFromCenter broadcastDistance) {
+		// WlanFramePacket centerPacket = new DistanceFromCenterPacket(myAddress(), NodeId.ALLNODES, getDistanceFromCenter());
+		// sendLanPacket(centerPacket);
 	}
 
 	@SuppressWarnings("unused")
-	private void process(GoodnessRequestPkt goodnessRequest) { // TODO - CHANGE TO RESPOND ONLY ONCE PER AGENT
-		if (knowsAgent(goodnessRequest.getAgent())) {
-			return; // do not respond to known agents
+	private void process(BroadcastScheduleDelayed scheduleDelayed) {
+		if (thisNodeHasMultipleSchedules()) {
+			// don't propagate
+			return;
 		}
-
-		addKnownAgent(goodnessRequest.getAgent());
-
-		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
-		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
-
-		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), new Random().nextDouble() * time(0.01), goodness);
-		sendEventSelf(sendGoodness);
-	}
-
-	private void addKnownAgent(ElectorAgent agent) {
-		_knownAgents.add(agent.getIdentifier());
-	}
-
-	private boolean knowsAgent(ElectorAgent agent) {
-		return _knownAgents.contains(agent.getIdentifier());
+		sendPacketDown((WlanFramePacket) scheduleDelayed.getPkt());
 	}
 
 	@SuppressWarnings("unused")
-	private void process(GoodnessPkt goodnessPkt) {
-		goodnessPkt.getSenderGoodness();
+	private void process(CreateScheduleWUC event) {
+		// if (thisNodeIsNotGoodEnough()) {
+		// return; // don't create schedule
+		// }
 
-		NeighborGoodness NeighborGoodness = new NeighborGoodness(goodnessPkt.getSender().getId(), goodnessPkt.getSenderGoodness());
-		getGoodnessListForAgent(goodnessPkt.getAgent()).add(NeighborGoodness);
-	}
-
-	private SortedSet<br.ufla.dcc.utils.NeighborGoodness> getGoodnessListForAgent(MACAgent agent) {
-		if (_neighborGoodness.get(agent.getIdentifier()) == null) {
-			_neighborGoodness.put(agent.getIdentifier(), new TreeSet<NeighborGoodness>());
-		}
-		return _neighborGoodness.get(agent.getIdentifier());
-	}
-
-	private NodeId getBestCandidate(MACAgent agent) {
-		if (_neighborGoodness.get(agent.getIdentifier()).isEmpty()) {
-			return null;
+		if (hasSchedule()) {
+			return;
 		}
 
-		return _neighborGoodness.get(agent.getIdentifier()).last().getNodeId();
+		Schedule schedule = new Schedule(SimulationManager.getInstance().getCurrentTime(), __timing.getEntireCycleSize());
+
+		followSchedule(schedule);
+
+		// broadcastSchedule(schedule);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(CrossLayerEvent cle) {
+		cle.forwardUp(this);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(CTSFrameStartWUC event) {
+		__frameFor = PacketType.CTS;
+
+		if (_ctsToSend != null) {// TODO - Start carrier sensing here
+			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void process(CTSPacket cts) {
+		if (!isPacketForThisNode(cts)) {
+			goSleepNow();
+			return;
+		}
+
+		_willSendData = true;
+	}
+
+	@SuppressWarnings("unused")
+	private void process(DataFrameStartWUC event) {
+		__frameFor = PacketType.DATA;
+
+		if (!_willReceiveData && !_willSendData) {
+			goSleepNow();
+		} else {
+			scheduleGoSleep(__timing.getAwakeCycleSize());
+		}
+
+		if (_willSendData) {
+			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
+		}
+
+		_willSendData = _willReceiveData = false;
 	}
 
 	public void process(DisseminateAgent disseminate) {
@@ -484,51 +452,6 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	}
 
-	private void sendLanPacket(WlanFramePacket goodnessPkt) {
-		// applyDefaultBitrate(goodnessPkt);
-		_outQueue.add(goodnessPkt);
-		// sendPacket(goodnessPkt);
-	}
-
-	private void applyDefaultBitrate(WlanFramePacket goodnessRequest) {
-		applyBitrate(goodnessRequest, -1);
-	}
-
-	private Address myAddress() {
-		return getSender();
-	}
-
-	@SuppressWarnings("unused")
-	private void process(RTSPacket rts) {
-		if (!packetIsForThisNode(rts)) {
-			goSleepNow();
-			return;
-		}
-
-		_willReceiveData = true;
-
-		CTSPacket cts = new CTSPacket(myAddress(), rts.getSender().getId());
-		applyDefaultBitrate(cts);
-
-		_ctsToSend = cts;
-	}
-
-	@SuppressWarnings("unused")
-	private void process(AckPacket ack) {
-		_outQueue.removeFirst();
-		_pendingACK = false;
-	}
-
-	@SuppressWarnings("unused")
-	private void process(CTSPacket cts) {
-		if (!packetIsForThisNode(cts)) {
-			goSleepNow();
-			return;
-		}
-
-		_willSendData = true;
-	}
-
 	@SuppressWarnings("unused")
 	private void process(DistanceFromCenterPacket distancePacket) {
 		// TODO - REIMPLEMENT THIS METHOD USING SIGNAL STENGHT TO CALCULATE THE
@@ -551,350 +474,48 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	}
 
-	private boolean isDistanceFromCenterNotSet() {
-		return getDistanceFromCenter() < 0;
-	}
+	@SuppressWarnings("unused")
+	private void process(FindAgentTarget findTarget) {
+		_neighborGoodness.put(findTarget.getAgent().getIdentifier(), new TreeSet<NeighborGoodness>());
 
-	/**
-	 * internal method to apply the current used bitrate. Afterwards getSendingTime is valid.
-	 * 
-	 * @param f
-	 *            the frame, where the bitrate is applied to.
-	 * @param forcedBitrateIdx
-	 *            use a value >= 0 to set a specific bitrate index, (needs to be obtained from a rate adaptation object).
-	 */
-	private void applyBitrate(WlanFramePacket f, int forcedBitrateIdx) {
-		if (forcedBitrateIdx >= 0) {
-			/*
-			 * This is only used for ACK or other control packets, which are not stored and processed in the normal queue of to be sent packets.
-			 */
-			f.setBPS(globalTimings, forcedBitrateIdx);
-		} else {
-			BitrateAdaptationPolicy raLocal = raDefaultPolicy;
-			Link link = getMetaDataLink(f);
+		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
+		// sendLanPacket(goodnessRequest);
 
-			if (link != null) {
-				if (link.getBitrateAdaptationPolicy() != null) {
-					raLocal = link.getBitrateAdaptationPolicy();
-				}
-			}
-
-			f.setBPS(globalTimings, raLocal);
-		}
-	}
-
-	// NEW IMPLEMENTATION ABOVE HERE
-	// #################################################################################################################
-
-	private void broadcastSchedule(Schedule schedule, double delay) {
-		// if (thisNodeHasMultipleSchedules()) {
-		// // don't propagate
-		// return;
-		// }
-
-		SchedulePacket schedulePacket = new SchedulePacket(myAddress(), NodeId.ALLNODES, schedule);
-
-		if (delay <= 0) {
-			sendPacketDown(schedulePacket);
-			return;
-		}
-
-		SendDelayedWakeUp sendDelayedWakeUp = new BroadcastScheduleDelayed(myAddress(), delay, schedulePacket);
-		sendEventSelf(sendDelayedWakeUp);
-	}
-
-	private boolean thisNodeHasMultipleSchedules() {
-		return __schedules != null && __schedules.size() > 1;
-	}
-
-	private void sendPacketDown(WlanFramePacket packet) {
-		applyBitrate(packet, -1);
-		sendPacket(packet);
-	}
-
-	/**
-	 * internal method to modify/set the backoff delay.
-	 * 
-	 * @param csStart
-	 *            time from which the carrier seng started.
-	 */
-	private void calcBackoffTime(double csStart) {
-		if (_immediateSend) {
-			setBackoffTime();
-		} else {
-			long passedBackoffSlots = (long) Math.floor((getNode().getCurrentTime() - csStart) / globalTimings.getSlotTime());
-			_backoffTime -= passedBackoffSlots * globalTimings.getSlotTime();
-
-			if (_backoffTime <= 0.0) {
-				_immediateSend = true;
-				_backoffTime = 0.0;
-			}
-		}
-	}
-
-	private void acceptSchedule(SchedulePacket schedulePacket) {
-		followSchedule(schedulePacket.getSchedule());
-		registerNeighbor(schedulePacket);
-		goSleepNow();
-	}
-
-	private void goSleepNow() {
-		scheduleGoSleep(0);
-	}
-
-	private void followSchedule(Schedule schedule) {
-
-		if (!hasSchedule()) {
-			Simulation.Log.state("Schedule", schedule.getId(), getNode());
-		} else {
-			Simulation.Log.state("Margin", schedule.getId(), getNode());
-		}
-		__schedules.add(schedule);
-
-		scheduleWakeUpForSchedule(schedule);
-	}
-
-	private void registerNeighbor(SchedulePacket schedulePacket) {
-		Set<NodeId> neighborsForSchedule = __knownNeighbors.get(schedulePacket.getSchedule());
-
-		if (neighborsForSchedule == null) {
-			neighborsForSchedule = new TreeSet<NodeId>();
-			__knownNeighbors.put(schedulePacket.getSchedule(), neighborsForSchedule);
-		}
-
-		neighborsForSchedule.add(schedulePacket.getSender().getId());
-	}
-
-	/**
-	 * currently no states needed, thus no statechanges possible.
-	 * 
-	 * @return the current MAC-state.
-	 */
-	@Override
-	public MACState getState() {
-		int size = _outQueue.size();
-
-		ArrayList<WlanFramePacket> queue = null;
-
-		if (_includeQueueInState) {
-			queue = new ArrayList<WlanFramePacket>();
-
-			if (_currentOutPacket != null) {
-				queue.add(_currentOutPacket);
-			}
-
-			queue.addAll(_outQueue);
-		}
-
-		if (_currentOutPacket != null) {
-			size++;
-		}
-
-		MACState state = new MACState(raDefaultPolicy, 16.0, size);
-
-		if (queue != null) {
-			state.setQueue(queue);
-		}
-
-		return state;
-	}
-
-	private boolean hasSchedule() {
-		return __schedules.size() > 0;
-	}
-
-	private boolean isFollowingSchedule(Schedule schedule) {
-		return __schedules.contains(schedule);
-	}
-
-	/**
-	 * method, to read the configuration parameters and to configure the MAC accordingly.
-	 * 
-	 * @param configuration
-	 *            the configuration to use for this node.
-	 * @throws ConfigurationException
-	 *             is thrown, if an illegal rate adaptation method is chosen.
-	 */
-	@Override
-	public void initConfiguration(Configuration configuration) throws ConfigurationException {
-		super.initConfiguration(configuration);
-		int i = 1, mode = AARFRateAdaptation.NO_ARF, maxBitrateIDX;
-		double x;
-
-		if (globalTimings == null) {
-			PhysicalLayerState phyState = (PhysicalLayerState) getNode().getLayerState(LayerType.PHYSICAL);
-			globalTimings = (IEEE_802_11_TimingParameters) phyState.getTimings();
-		}
-		timings = globalTimings;
-		maxBitrateIDX = globalTimings.getMaxBitrateIDX();
-
-		if (_rateAdaption.equals("ARF")) {
-			mode = AARFRateAdaptation.ARF;
-		} else if (_rateAdaption.equals("AARF")) {
-			mode = AARFRateAdaptation.AARF;
-			i = _raUpMult;
-		} else if (_rateAdaption.equals("NO_ARF")) {
-			LOGGER.info("no rate adaptation used.");
-		} else {
-			throw new ConfigurationException("MacModule of Node " + id + " illegal rate adaption policy " + _rateAdaption);
-		}
-
-		x = getConfig().getSimulationSteps(_raTimeout);
-		raDefaultPolicy = new AARFRateAdaptation(this, maxBitrateIDX, maxBitrateIDX, mode, -_raDownLevel, _raUpLevel, i, x);
-		_currentCW = 0;
-		_pendingCS = false;
-		_pendingACK = false;
-		_willSendACK = false;
-		_immediateSend = true;
-		_currentOutPacket = null;
-
-		_propagationDelay = getConfig().getPropagationDelay();
-		if (_propagationDelay != getConfig().getSimulationSteps(1.0e-7)) {
-			throw new SimulationFailedException("propagation delay is invalid for " + MAC_IEEE802_11bg_DCF.class.getName());
-		}
-	}
-
-	/**
-	 * Method to log a statistic event of a certain type.
-	 * 
-	 * @param slr
-	 *            A wakeup call with information on what to log
-	 */
-	private void logStatistic(StatisticLogRequest slr) {
-		if (slr.getStatisticType() == DROPS_PER_SECOND) {
-			SimulationManager.logStatistic(id, LayerType.MAC, "time", "Dropped Packets / s",
-					Double.toString(SimulationManager.getInstance().getCurrentTime()), Integer.toString(_droppedPackets));
-			_droppedPackets = 0;
-		}
-	}
-
-	/**
-	 * @see br.ufla.dcc.grubix.simulator.node.Layer#lowerSAP(br.ufla.dcc.grubix.simulator.event.Packet)
-	 * 
-	 * @param packet
-	 *            to process coming from lower layer.
-	 */
-	@Override
-	public final void lowerSAP(Packet packet) {
-
-		if (__NodeState.getClass().equals(Sleeping.class)) {
-			return;
-		}
-
-		// if (!packetIsForThisNode(packet) && !packetIsForAllNodes(packet)) {
-		// return;
-		// }
-
-		try {
-			Method declaredMethod = getClass().getDeclaredMethod("process", packet.getClass());
-			declaredMethod.invoke(this, packet);
-			return;
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			LOGGER.error("This layer doesn't handle packets of type " + packet.getClass().getName());
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		WlanFramePacket frame = (WlanFramePacket) packet, ack;
-
-		/*
-		 * On any modification of this method, please ensure, that trySend() will be called after the reception of a packet, since this might have
-		 * blocked a new outgoing packet from being sent.
-		 */
-		boolean doDropPacket = !packetIsForThisNode(frame) && !packetIsForAllNodes(frame);
-		NodeId senderId = frame.getSender().getId();
-
-		if (doDropPacket && _promiscuous && !frame.isTerminal() && !senderId.equals(id)) {
-			doDropPacket = false;
-		}
-
-		if (doDropPacket) {
-			if (LOGGER.isDebugEnabled()) { // check if enabled to reduce
-											// performance impact
-				LOGGER.debug("Packet not for this node. Throwing away " + frame);
-			}
-			// advance queue after receiving neither a broadcast nor a packet
-			// for this node.
-			// +++++++++++++ trySend(0); // #0#
-		} else {
-			if (packetIsForThisNode(frame) && frame.isTerminal() && (frame.isControl())) {
-				switch (frame.getType()) {
-				case ACK:
-					_pendingACK = false;
-					_immediateSend = true;
-					break;
-				case RTS:
-					break;
-				case CTS:
-					break;
-				default:
-					break;
-				}
-				// TODO handle MAC control packets, like [rts, cts]
-
-				// no trySend() needeed here, since the wakeupcall processing
-				// MACProcessAckTimeout will handle this.
-			} else {
-
-				sendPacket(frame.getEnclosedPacket());
-
-				if (frame.isAckRequested()) {
-					_willSendACK = true;
-
-					ack = new AckPacket(sender, packet.getSender().getId(), frame.getSignalStrength());
-
-					applyBitrate(ack, frame.getBitrateIdx());
-					sendPacket(ack);
-					//
-					// WakeUpCall wuc = new MACSendACK(sender, globalTimings.getSifs(), ack);
-					// sendEventSelf(wuc);
-
-					// no trySend() here, since any send prior the send of the
-					// ack makes no sense.
-				} else {
-					if (_backoffAfterReceivedBroadcast && packetIsForAllNodes(packet)) {
-						setBackoffTime();
-					}
-
-					// advance queue after receiving a broadcast.
-					// +++++++++++++ trySend(1); // #1#
-				}
-			}
-		}
-	}
-
-	/**
-	 * @param packet
-	 * @return true - if the packet is a broadcast
-	 */
-	private boolean packetIsForAllNodes(Packet packet) {
-		return packet.getReceiver() == NodeId.ALLNODES;
-	}
-
-	/**
-	 * @param packet
-	 * @return true - if this node is the only receiver for the packet
-	 */
-	private boolean packetIsForThisNode(Packet packet) {
-		return packet.getReceiver().equals(id);
+		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), time(0.1), findTarget.getAgent());
+		sendEventSelf(disseminateAgent);
 	}
 
 	@SuppressWarnings("unused")
-	private void process(CrossLayerEvent cle) {
-		cle.forwardUp(this);
+	private void process(GoodnessPkt goodnessPkt) {
+		goodnessPkt.getSenderGoodness();
+
+		NeighborGoodness NeighborGoodness = new NeighborGoodness(goodnessPkt.getSender().getId(), goodnessPkt.getSenderGoodness());
+		getGoodnessListForAgent(goodnessPkt.getAgent()).add(NeighborGoodness);
 	}
 
-	private static int PKT_COUNT = 0;
+	@SuppressWarnings("unused")
+	private void process(GoodnessRequestPkt goodnessRequest) { // TODO - CHANGE TO RESPOND ONLY ONCE PER AGENT
+		if (knowsAgent(goodnessRequest.getAgent())) {
+			return; // do not respond to known agents
+		}
+
+		addKnownAgent(goodnessRequest.getAgent());
+
+		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
+		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
+
+		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), new Random().nextDouble() * time(0.01), goodness);
+		sendEventSelf(sendGoodness);
+	}
+
+	@SuppressWarnings("unused")
+	private void process(GoSleepWUC wakeUp) {
+		if (_waitingForSleepTime == wakeUp) {
+			Simulation.Log.state(NODE_STATE, NodeState.SLEEPING, getNode());
+			__NodeState = new Sleeping();
+		}
+		// TODO - CHANGE THE STATE E CONFIGURE NODE
+	}
 
 	/**
 	 * internal method to handle MACCarrierSensing.
@@ -969,38 +590,6 @@ public class CircularBackbone_MAC extends MACLayer {
 		} else {
 			calcBackoffTime(macCS.getCsStart());
 		}
-	}
-
-	private void sendPacket(WlanFramePacket packet) {
-		Simulation.Log.state("PKT TYPE", packet.getType().ordinal(), getNode());
-		_lastSent = getNode().getCurrentTime();
-		super.sendPacket(packet);
-	}
-
-	private void preparePacketToBeSent(WlanFramePacket packet) {
-		packet.getRaPolicy().reset(getNode().getCurrentTime());
-		packet.setAckRequested(packetNeedsAck(packet));
-		packet.setReadyForTransmission(true);
-	}
-
-	private boolean packetNeedsAck(WlanFramePacket packet) {
-		return !isBroadcast(packet) && (isDataPacket(packet) || isRTSPacket(packet));
-	}
-
-	private boolean isRTSPacket(WlanFramePacket packet) {
-		return isPacketOfType(packet, PacketType.RTS);
-	}
-
-	private boolean isPacketOfType(WlanFramePacket packet, PacketType rts) {
-		return packet.getType() == rts;
-	}
-
-	private boolean isBroadcast(WlanFramePacket packet) {
-		return packet.getReceiver() == NodeId.ALLNODES;
-	}
-
-	private boolean isDataPacket(WlanFramePacket packet) {
-		return isPacketOfType(packet, PacketType.DATA);
 	}
 
 	/**
@@ -1169,6 +758,30 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	@SuppressWarnings("unused")
+	private void process(RTSFrameStartWUC event) {
+		__frameFor = PacketType.RTS;
+
+		if (_outQueue.size() > 0) {
+			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private void process(RTSPacket rts) {
+		if (!isPacketForThisNode(rts)) {
+			goSleepNow();
+			return;
+		}
+
+		_willReceiveData = true;
+
+		CTSPacket cts = new CTSPacket(myAddress(), rts.getSender().getId());
+		applyDefaultBitrate(cts);
+
+		_ctsToSend = cts;
+	}
+
+	@SuppressWarnings("unused")
 	private void process(SchedulePacket schedulePacket) {
 		// if (!hasSchedule()) {
 		// acceptSchedule(schedulePacket);
@@ -1183,8 +796,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		acceptSchedule(schedulePacket);
 	}
 
-	private void broadcastSchedule(Schedule schedule) {
-		broadcastSchedule(schedule, 0);
+	@SuppressWarnings("unused")
+	private void process(SendDelayedWakeUp sendDelayed) {
+		sendPacketDown((WlanFramePacket) sendDelayed.getPkt());
 	}
 
 	@SuppressWarnings("unused")
@@ -1197,36 +811,6 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void process(StatisticLogRequest logRequest) {
 		logStatistic(logRequest);
 		sendEventSelf(logRequest);
-	}
-
-	@SuppressWarnings("unused")
-	private void process(CreateScheduleWUC event) {
-		if (thisNodeIsNotGoodEnough()) {
-			return; // don't create schedule
-		}
-
-		if (hasSchedule()) {
-			return;
-		}
-
-		Schedule schedule = new Schedule(SimulationManager.getInstance().getCurrentTime(), __timing.getEntireCycleSize());
-
-		followSchedule(schedule);
-
-		broadcastSchedule(schedule);
-	}
-
-	private boolean thisNodeIsNotGoodEnough() {
-		return new Random().nextDouble() < GOODNESS_FACTOR;
-	}
-
-	@SuppressWarnings("unused")
-	private void process(GoSleepWUC wakeUp) {
-		if (_waitingForSleepTime == wakeUp) {
-			Simulation.Log.state(NODE_STATE, NodeState.SLEEPING, getNode());
-			__NodeState = new Sleeping();
-		}
-		// TODO - CHANGE THE STATE E CONFIGURE NODE
 	}
 
 	@SuppressWarnings("unused")
@@ -1251,48 +835,6 @@ public class CircularBackbone_MAC extends MACLayer {
 		sendEventSelf(waitForDataOrGoToSleep);
 
 		scheduleWakeUpForSchedule(__currentSchedule);
-	}
-
-	@SuppressWarnings("unused")
-	private void process(RTSFrameStartWUC event) {
-		__frameFor = PacketType.RTS;
-
-		if (_outQueue.size() > 0) {
-			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
-		}
-	}
-
-	@Override
-	public void startCarrierSense(double minFreeTime, double varFreeTime) {
-		LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
-		__NodeState = new CarrierSensing(); // TODO - Change this to a state manager
-		super.startCarrierSense(0, varFreeTime);
-	}
-
-	@SuppressWarnings("unused")
-	private void process(CTSFrameStartWUC event) {
-		__frameFor = PacketType.CTS;
-
-		if (_ctsToSend != null) {// TODO - Start carrier sensing here
-			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
-		}
-	}
-
-	@SuppressWarnings("unused")
-	private void process(DataFrameStartWUC event) {
-		__frameFor = PacketType.DATA;
-
-		if (!_willReceiveData && !_willSendData) {
-			goSleepNow();
-		} else {
-			scheduleGoSleep(__timing.getAwakeCycleSize());
-		}
-
-		if (_willSendData) {
-			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
-		}
-
-		_willSendData = _willReceiveData = false;
 	}
 
 	/**
@@ -1340,20 +882,6 @@ public class CircularBackbone_MAC extends MACLayer {
 		raDefaultPolicy.setBitrateIdx(n);
 	}
 
-	@SuppressWarnings("unused")
-	private void process(SendDelayedWakeUp sendDelayed) {
-		sendPacketDown((WlanFramePacket) sendDelayed.getPkt());
-	}
-
-	@SuppressWarnings("unused")
-	private void process(BroadcastScheduleDelayed scheduleDelayed) {
-		if (thisNodeHasMultipleSchedules()) {
-			// don't propagate
-			return;
-		}
-		sendPacketDown((WlanFramePacket) scheduleDelayed.getPkt());
-	}
-
 	/**
 	 * process the incoming events MACCarrierSensing and MACprocessAckTimeout.
 	 * 
@@ -1376,6 +904,408 @@ public class CircularBackbone_MAC extends MACLayer {
 		}
 	}
 
+	private void acceptSchedule(SchedulePacket schedulePacket) {
+
+		followSchedule(schedulePacket.getSchedule());
+		registerNeighbor(schedulePacket);
+		goSleepNow();
+	}
+
+	private void addKnownAgent(ElectorAgent agent) {
+		_knownAgents.add(agent.getIdentifier());
+	}
+
+	/**
+	 * internal method to apply the current used bitrate. Afterwards getSendingTime is valid.
+	 * 
+	 * @param f
+	 *            the frame, where the bitrate is applied to.
+	 * @param forcedBitrateIdx
+	 *            use a value >= 0 to set a specific bitrate index, (needs to be obtained from a rate adaptation object).
+	 */
+	private void applyBitrate(WlanFramePacket f, int forcedBitrateIdx) {
+		if (forcedBitrateIdx >= 0) {
+			/*
+			 * This is only used for ACK or other control packets, which are not stored and processed in the normal queue of to be sent packets.
+			 */
+			f.setBPS(globalTimings, forcedBitrateIdx);
+		} else {
+			BitrateAdaptationPolicy raLocal = raDefaultPolicy;
+			Link link = getMetaDataLink(f);
+
+			if (link != null) {
+				if (link.getBitrateAdaptationPolicy() != null) {
+					raLocal = link.getBitrateAdaptationPolicy();
+				}
+			}
+
+			f.setBPS(globalTimings, raLocal);
+		}
+	}
+
+	private void applyDefaultBitrate(WlanFramePacket goodnessRequest) {
+		applyBitrate(goodnessRequest, -1);
+	}
+
+	private void broadcastSchedule(Schedule schedule) {
+		broadcastSchedule(schedule, 0);
+	}
+
+	private void broadcastSchedule(Schedule schedule, double delay) {
+		// if (thisNodeHasMultipleSchedules()) {
+		// // don't propagate
+		// return;
+		// }
+
+		SchedulePacket schedulePacket = new SchedulePacket(myAddress(), NodeId.ALLNODES, schedule);
+
+		if (delay <= 0) {
+			sendPacketDown(schedulePacket);
+			return;
+		}
+
+		SendDelayedWakeUp sendDelayedWakeUp = new BroadcastScheduleDelayed(myAddress(), delay, schedulePacket);
+		sendEventSelf(sendDelayedWakeUp);
+	}
+
+	/**
+	 * internal method to modify/set the backoff delay.
+	 * 
+	 * @param csStart
+	 *            time from which the carrier seng started.
+	 */
+	private void calcBackoffTime(double csStart) {
+		if (_immediateSend) {
+			setBackoffTime();
+		} else {
+			long passedBackoffSlots = (long) Math.floor((getNode().getCurrentTime() - csStart) / globalTimings.getSlotTime());
+			_backoffTime -= passedBackoffSlots * globalTimings.getSlotTime();
+
+			if (_backoffTime <= 0.0) {
+				_immediateSend = true;
+				_backoffTime = 0.0;
+			}
+		}
+	}
+
+	private void followSchedule(Schedule schedule) {
+
+		if (!hasSchedule()) {
+			Simulation.Log.state("Schedule", schedule.getId(), getNode());
+		} else {
+			Simulation.Log.state("Margin", schedule.getId(), getNode());
+		}
+		__schedules.add(schedule);
+
+		scheduleWakeUpForSchedule(schedule);
+	}
+
+	private NodeId getBestCandidate(MACAgent agent) {
+		if (_neighborGoodness.get(agent.getIdentifier()).isEmpty()) {
+			return null;
+		}
+
+		return _neighborGoodness.get(agent.getIdentifier()).last().getNodeId();
+	}
+
+	public double getDistanceFromCenter() {
+		return _distanceFromCenter;
+	}
+
+	private SortedSet<br.ufla.dcc.utils.NeighborGoodness> getGoodnessListForAgent(MACAgent agent) {
+		if (_neighborGoodness.get(agent.getIdentifier()) == null) {
+			_neighborGoodness.put(agent.getIdentifier(), new TreeSet<NeighborGoodness>());
+		}
+		return _neighborGoodness.get(agent.getIdentifier());
+	}
+
+	/**
+	 * currently no states needed, thus no statechanges possible.
+	 * 
+	 * @return the current MAC-state.
+	 */
+	@Override
+	public MACState getState() {
+		int size = _outQueue.size();
+
+		ArrayList<WlanFramePacket> queue = null;
+
+		if (_includeQueueInState) {
+			queue = new ArrayList<WlanFramePacket>();
+
+			if (_currentOutPacket != null) {
+				queue.add(_currentOutPacket);
+			}
+
+			queue.addAll(_outQueue);
+		}
+
+		if (_currentOutPacket != null) {
+			size++;
+		}
+
+		MACState state = new MACState(raDefaultPolicy, 16.0, size);
+
+		if (queue != null) {
+			state.setQueue(queue);
+		}
+
+		return state;
+	}
+
+	// NEW IMPLEMENTATION ABOVE HERE
+	// #################################################################################################################
+
+	private void goSleepNow() {
+		scheduleGoSleep(0);
+	}
+
+	private boolean hasSchedule() {
+		return __schedules.size() > 0;
+	}
+
+	/**
+	 * method, to read the configuration parameters and to configure the MAC accordingly.
+	 * 
+	 * @param configuration
+	 *            the configuration to use for this node.
+	 * @throws ConfigurationException
+	 *             is thrown, if an illegal rate adaptation method is chosen.
+	 */
+	@Override
+	public void initConfiguration(Configuration configuration) throws ConfigurationException {
+		super.initConfiguration(configuration);
+		int i = 1, mode = AARFRateAdaptation.NO_ARF, maxBitrateIDX;
+		double x;
+
+		if (globalTimings == null) {
+			PhysicalLayerState phyState = (PhysicalLayerState) getNode().getLayerState(LayerType.PHYSICAL);
+			globalTimings = (IEEE_802_11_TimingParameters) phyState.getTimings();
+		}
+		timings = globalTimings;
+		maxBitrateIDX = globalTimings.getMaxBitrateIDX();
+
+		if (_rateAdaption.equals("ARF")) {
+			mode = AARFRateAdaptation.ARF;
+		} else if (_rateAdaption.equals("AARF")) {
+			mode = AARFRateAdaptation.AARF;
+			i = _raUpMult;
+		} else if (_rateAdaption.equals("NO_ARF")) {
+			LOGGER.info("no rate adaptation used.");
+		} else {
+			throw new ConfigurationException("MacModule of Node " + id + " illegal rate adaption policy " + _rateAdaption);
+		}
+
+		x = getConfig().getSimulationSteps(_raTimeout);
+		raDefaultPolicy = new AARFRateAdaptation(this, maxBitrateIDX, maxBitrateIDX, mode, -_raDownLevel, _raUpLevel, i, x);
+		_currentCW = 0;
+		_pendingCS = false;
+		_pendingACK = false;
+		_willSendACK = false;
+		_immediateSend = true;
+		_currentOutPacket = null;
+
+		_propagationDelay = getConfig().getPropagationDelay();
+		if (_propagationDelay != getConfig().getSimulationSteps(1.0e-7)) {
+			throw new SimulationFailedException("propagation delay is invalid for " + MAC_IEEE802_11bg_DCF.class.getName());
+		}
+	}
+
+	private boolean isBroadcast(WlanFramePacket packet) {
+		return packet.getReceiver() == NodeId.ALLNODES;
+	}
+
+	private boolean isDataPacket(WlanFramePacket packet) {
+		return isPacketOfType(packet, PacketType.DATA);
+	}
+
+	private boolean isDistanceFromCenterNotSet() {
+		return getDistanceFromCenter() < 0;
+	}
+
+	private boolean isFollowingSchedule(Schedule schedule) {
+		return __schedules.contains(schedule);
+	}
+
+	/**
+	 * @param packet
+	 * @return true - if the packet is a broadcast
+	 */
+	private boolean isPacketForAllNodes(Packet packet) {
+		return packet.getReceiver() == NodeId.ALLNODES;
+	}
+
+	/**
+	 * @param packet
+	 * @return true - if this node is the only receiver for the packet
+	 */
+	private boolean isPacketForThisNode(Packet packet) {
+		return packet.getReceiver().equals(id);
+	}
+
+	private boolean isPacketOfType(WlanFramePacket packet, PacketType rts) {
+		return packet.getType() == rts;
+	}
+
+	private boolean isRTSPacket(WlanFramePacket packet) {
+		return isPacketOfType(packet, PacketType.RTS);
+	}
+
+	private boolean isThereACenterNode() {
+		return __centerNode != null;
+	}
+
+	private boolean knowsAgent(ElectorAgent agent) {
+		return _knownAgents.contains(agent.getIdentifier());
+	}
+
+	/**
+	 * Method to log a statistic event of a certain type.
+	 * 
+	 * @param slr
+	 *            A wakeup call with information on what to log
+	 */
+	private void logStatistic(StatisticLogRequest slr) {
+		if (slr.getStatisticType() == DROPS_PER_SECOND) {
+			SimulationManager.logStatistic(id, LayerType.MAC, "time", "Dropped Packets / s",
+					Double.toString(SimulationManager.getInstance().getCurrentTime()), Integer.toString(_droppedPackets));
+			_droppedPackets = 0;
+		}
+	}
+
+	/**
+	 * @see br.ufla.dcc.grubix.simulator.node.Layer#lowerSAP(br.ufla.dcc.grubix.simulator.event.Packet)
+	 * 
+	 * @param packet
+	 *            to process coming from lower layer.
+	 */
+	@Override
+	public final void lowerSAP(Packet packet) {
+
+		if (__NodeState.getClass().equals(Sleeping.class)) {
+			return;
+		}
+
+		// if (!packetIsForThisNode(packet) && !packetIsForAllNodes(packet)) {
+		// return;
+		// }
+
+		try {
+			Method declaredMethod = getClass().getDeclaredMethod("process", packet.getClass());
+			declaredMethod.invoke(this, packet);
+			return;
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			LOGGER.error("This layer doesn't handle packets of type " + packet.getClass().getName());
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		WlanFramePacket frame = (WlanFramePacket) packet, ack;
+
+		/*
+		 * On any modification of this method, please ensure, that trySend() will be called after the reception of a packet, since this might have
+		 * blocked a new outgoing packet from being sent.
+		 */
+		boolean doDropPacket = !isPacketForThisNode(frame) && !isPacketForAllNodes(frame);
+		NodeId senderId = frame.getSender().getId();
+
+		if (doDropPacket && _promiscuous && !frame.isTerminal() && !senderId.equals(id)) {
+			doDropPacket = false;
+		}
+
+		if (doDropPacket) {
+			if (LOGGER.isDebugEnabled()) { // check if enabled to reduce
+											// performance impact
+				LOGGER.debug("Packet not for this node. Throwing away " + frame);
+			}
+			// advance queue after receiving neither a broadcast nor a packet
+			// for this node.
+			// +++++++++++++ trySend(0); // #0#
+		} else {
+			if (isPacketForThisNode(frame) && frame.isTerminal() && (frame.isControl())) {
+				switch (frame.getType()) {
+				case ACK:
+					_pendingACK = false;
+					_immediateSend = true;
+					break;
+				case RTS:
+					break;
+				case CTS:
+					break;
+				default:
+					break;
+				}
+				// TODO handle MAC control packets, like [rts, cts]
+
+				// no trySend() needeed here, since the wakeupcall processing
+				// MACProcessAckTimeout will handle this.
+			} else {
+
+				sendPacket(frame.getEnclosedPacket());
+
+				if (frame.isAckRequested()) {
+					_willSendACK = true;
+
+					ack = new AckPacket(sender, packet.getSender().getId(), frame.getSignalStrength());
+
+					applyBitrate(ack, frame.getBitrateIdx());
+					sendPacket(ack);
+					//
+					// WakeUpCall wuc = new MACSendACK(sender, globalTimings.getSifs(), ack);
+					// sendEventSelf(wuc);
+
+					// no trySend() here, since any send prior the send of the
+					// ack makes no sense.
+				} else {
+					if (_backoffAfterReceivedBroadcast && isPacketForAllNodes(packet)) {
+						setBackoffTime();
+					}
+
+					// advance queue after receiving a broadcast.
+					// +++++++++++++ trySend(1); // #1#
+				}
+			}
+		}
+	}
+
+	private Address myAddress() {
+		return getSender();
+	}
+
+	private boolean packetNeedsAck(WlanFramePacket packet) {
+		return !isBroadcast(packet) && (isDataPacket(packet) || isRTSPacket(packet));
+	}
+
+	private void preparePacketToBeSent(WlanFramePacket packet) {
+		packet.getRaPolicy().reset(getNode().getCurrentTime());
+		packet.setAckRequested(packetNeedsAck(packet));
+		packet.setReadyForTransmission(true);
+	}
+
+	// NEW IMPLEMENTATION ABOVE HERE
+	// #################################################################################################################
+
+	private void registerNeighbor(SchedulePacket schedulePacket) {
+		Set<NodeId> neighborsForSchedule = __knownNeighbors.get(schedulePacket.getSchedule());
+
+		if (neighborsForSchedule == null) {
+			neighborsForSchedule = new TreeSet<NodeId>();
+			__knownNeighbors.put(schedulePacket.getSchedule(), neighborsForSchedule);
+		}
+
+		neighborsForSchedule.add(schedulePacket.getSender().getId());
+	}
+
 	private void scheduleGoSleep(double delayInSteps) {
 		WakeUpCall goSleep = new GoSleepWUC(myAddress(), delayInSteps);
 		_waitingForSleepTime = goSleep;
@@ -1386,6 +1316,23 @@ public class CircularBackbone_MAC extends MACLayer {
 		double delayInSteps = schedule.getDelay(SimulationManager.getInstance().getCurrentTime());
 		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayInSteps, schedule);
 		sendEventSelf(wakeUp);
+	}
+
+	private void sendLanPacket(WlanFramePacket goodnessPkt) {
+		// applyDefaultBitrate(goodnessPkt);
+		_outQueue.add(goodnessPkt);
+		// sendPacket(goodnessPkt);
+	}
+
+	private void sendPacket(WlanFramePacket packet) {
+		Simulation.Log.state("PKT TYPE", packet.getType().ordinal(), getNode());
+		_lastSent = getNode().getCurrentTime();
+		super.sendPacket(packet);
+	}
+
+	private void sendPacketDown(WlanFramePacket packet) {
+		applyBitrate(packet, -1);
+		sendPacket(packet);
 	}
 
 	/** Internal method to set a random backoff delay. */
@@ -1401,6 +1348,21 @@ public class CircularBackbone_MAC extends MACLayer {
 		}
 	}
 
+	private void setDistanceFromCenter(double distanceFromCenter) {
+		_distanceFromCenter = distanceFromCenter;
+		Simulation.Log.state("Radius", _distanceFromCenter, getNode());
+
+		int backboneRadius = 100;
+		int variation = 15;
+
+		if (_distanceFromCenter > backboneRadius - variation && _distanceFromCenter < backboneRadius + variation) {
+			Simulation.Log.state("Backbone Range", 4, getNode());
+		} else {
+			Simulation.Log.state("Backbone Range", 7, getNode());
+		}
+
+	}
+
 	/**
 	 * Currently only supports the change of the Bitrate via the default policy.
 	 * 
@@ -1413,6 +1375,25 @@ public class CircularBackbone_MAC extends MACLayer {
 		// TODO the other attribute of state should be used
 		_promiscuous = ((MACState) state).getPromiscuous();
 		return false;
+	}
+
+	@Override
+	public void startCarrierSense(double minFreeTime, double varFreeTime) {
+		LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
+		__NodeState = new CarrierSensing(); // TODO - Change this to a state manager
+		super.startCarrierSense(0, varFreeTime);
+	}
+
+	private boolean thisNodeHasMultipleSchedules() {
+		return __schedules != null && __schedules.size() > 1;
+	}
+
+	private boolean thisNodeIsNotGoodEnough() {
+		return new Random().nextDouble() < GOODNESS_FACTOR;
+	}
+
+	public double time(double seconds) {
+		return Configuration.getInstance().getSimulationSteps(seconds);
 	}
 
 	/**
@@ -1532,7 +1513,29 @@ public class CircularBackbone_MAC extends MACLayer {
 		// }
 	}
 
-	public double time(double seconds) {
-		return Configuration.getInstance().getSimulationSteps(seconds);
+	private boolean verifyCenter(Position position) {
+		if (isThereACenterNode()) {
+			return false;
+		}
+
+		double nodeX = position.getXCoord();
+		double nodeY = position.getYCoord();
+
+		double fieldSizeX = Configuration.getInstance().getXSize();
+		double fieldSizeY = Configuration.getInstance().getYSize();
+
+		double fieldVarianceX = fieldSizeX * .05;
+		double fieldVarianceY = fieldSizeY * .05;
+
+		double centerX = fieldSizeX / 2;
+		double centerY = fieldSizeY / 2;
+
+		if (centerX - fieldVarianceX < nodeX && nodeX < centerX + fieldVarianceX) {
+			if (centerY - fieldVarianceY < nodeY && nodeY < centerY + fieldVarianceY) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
