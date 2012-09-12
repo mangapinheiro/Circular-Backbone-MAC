@@ -80,6 +80,7 @@ import br.ufla.dcc.mac.backbone.wakeupcall.DataFrameStartWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.DisseminateAgent;
 import br.ufla.dcc.mac.backbone.wakeupcall.FindAgentTarget;
 import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
+import br.ufla.dcc.mac.backbone.wakeupcall.NeighborDiscoveryWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.RTSFrameStartWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.WakeUpWUC;
 import br.ufla.dcc.mac.packet.AckPacket;
@@ -286,7 +287,15 @@ public class CircularBackbone_MAC extends MACLayer {
 			this.followSchedule(DEFAULT_SCHEDULE);
 
 		} else {
-			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize() * 3);
+			
+			Create handler to NeighborDiscoveryWUC and handle the sleep avoidance;
+			
+			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
+			sendEventSelf(neighborDiscovery);
+
+			Remove the wuc bellow and make it dependent on NeighborDiscovery;
+			
+			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
 			sendEventSelf(createSchedule);
 		}
 
