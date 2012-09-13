@@ -79,6 +79,7 @@ import br.ufla.dcc.mac.backbone.wakeupcall.CreateScheduleWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.DataFrameStartWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.DisseminateAgent;
 import br.ufla.dcc.mac.backbone.wakeupcall.FindAgentTarget;
+import br.ufla.dcc.mac.backbone.wakeupcall.FinishNeighborDiscoveryWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.GoSleepWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.NeighborDiscoveryWUC;
 import br.ufla.dcc.mac.backbone.wakeupcall.RTSFrameStartWUC;
@@ -287,16 +288,16 @@ public class CircularBackbone_MAC extends MACLayer {
 			this.followSchedule(DEFAULT_SCHEDULE);
 
 		} else {
-			
-			Create handler to NeighborDiscoveryWUC and handle the sleep avoidance;
-			
+
+			// Create handler to NeighborDiscoveryWUC and handle the sleep avoidance;
+
 			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
 			sendEventSelf(neighborDiscovery);
 
-			Remove the wuc bellow and make it dependent on NeighborDiscovery;
-			
-			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
-			sendEventSelf(createSchedule);
+			// TODO - Remove the wuc bellow and make it dependent on NeighborDiscovery;
+			//
+			// WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+			// sendEventSelf(createSchedule);
 		}
 
 		// if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
@@ -321,6 +322,48 @@ public class CircularBackbone_MAC extends MACLayer {
 		// WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
 		// sendEventSelf(broadcastBbBuilderAgent);
 		// }
+	}
+
+	private final int DISCOVERING = 9;
+	private final int NOT_DISCOVERING = 8;
+
+	private boolean __discoveryMode = false;
+
+	@SuppressWarnings("unused")
+	private void process(NeighborDiscoveryWUC discovery) {
+		__frameFor = PacketType.CONTROL;
+		__discoveryMode = true;
+
+		WakeUpCall finishNeighborDiscovery = new FinishNeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
+		sendEventSelf(finishNeighborDiscovery);
+
+		Simulation.Log.state("Discovering", DISCOVERING, getNode());
+	}
+
+	@SuppressWarnings("unused")
+	private void process(FinishNeighborDiscoveryWUC discovery) {
+		__discoveryMode = false;
+
+		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize() * (numberOfKnownNeighbors() + 1)
+				* 1.5); continue from here
+		sendEventSelf(finishNeighborDiscovery);
+
+		Simulation.Log.state("Discovering", NOT_DISCOVERING, getNode());
+
+		if (__schedules.size() == 0) {
+			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+			sendEventSelf(createSchedule);
+		}
+
+	}
+
+	private int numberOfKnownNeighbors() {
+		int numberOfKnownNeighbors = 0;
+
+		for (Schedule schedule : __knownNeighbors.keySet()) {
+			numberOfKnownNeighbors += __knownNeighbors.get(schedule).size();
+		}
+		return numberOfKnownNeighbors;
 	}
 
 	@SuppressWarnings("unused")
@@ -374,10 +417,6 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(CreateScheduleWUC event) {
-		// if (thisNodeIsNotGoodEnough()) {
-		// return; // don't create schedule
-		// }
-
 		if (hasSchedule()) {
 			return;
 		}
@@ -519,6 +558,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(GoSleepWUC wakeUp) {
+		if (__discoveryMode) {
+			return;
+		}
+
 		if (_waitingForSleepTime == wakeUp) {
 			Simulation.Log.state(NODE_STATE, NodeState.SLEEPING, getNode());
 			__NodeState = new Sleeping();
@@ -843,7 +886,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		WakeUpCall waitForDataOrGoToSleep = new DataFrameStartWUC(getSender(), waitCTS.getDelay() + __timing.getListenPeriodForCTS());
 		sendEventSelf(waitForDataOrGoToSleep);
 
-		scheduleWakeUpForSchedule(__currentSchedule);
+		wakeUp = new WakeUpWUC(myAddress(), __timing.getEntireCycleSize(), wakeUp.getSchedule());
+		sendEventSelf(wakeUp);
+		// scheduleWakeUpForSchedule(__currentSchedule);
 	}
 
 	/**

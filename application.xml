@@ -5,7 +5,7 @@
     <description write="bla" />
     
     <field>
-        <dimension x="300" y="300"/>
+        <dimension x="33" y="33"/>
     </field>
     
     <physicalmodel>
@@ -25,7 +25,7 @@
     </bitmanglingmodel>
     
     <nodes>    
-        <node name="REGULAR" count="2">
+        <node name="REGULAR" count="3">
             <layers>
                 <operatingSystem>
                     <class>br.ufla.dcc.grubix.simulator.node.user.os.NullOperatingSystemLayer</class>
