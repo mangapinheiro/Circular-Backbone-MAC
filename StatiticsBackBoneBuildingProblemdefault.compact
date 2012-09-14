@@ -1,5 +1,4 @@
-##ShoX statistics file, created Thu Sep 13 23:11:43 BRT 2012
-st id2 lNET axtime ayHop+Count x12.0 y1.0
+##ShoX statistics file, created Thu Sep 13 23:43:27 BRT 2012
 st id1 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
