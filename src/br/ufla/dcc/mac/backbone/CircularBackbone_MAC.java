@@ -289,7 +289,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		} else {
 
-			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
+			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (.5 + new Random().nextFloat()) * __timing.getEntireCycleSize());
 			sendEventSelf(neighborDiscovery);
 
 			// TODO - Remove the wuc bellow and make it dependent on NeighborDiscovery;
@@ -336,19 +336,22 @@ public class CircularBackbone_MAC extends MACLayer {
 		sendEventSelf(finishNeighborDiscovery);
 
 		Simulation.Log.state("Discovering", DISCOVERING, getNode());
+		Simulation.Log.state(NODE_STATE, NodeState.ON, getNode());
 	}
 
 	@SuppressWarnings("unused")
 	private void process(FinishNeighborDiscoveryWUC discovery) {
 		__discoveryMode = false;
 
-		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize() * (numberOfKnownNeighbors() + 1)
+		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize() * (numberOfKnownNeighbors() + 4)
 				* 1.5);
 		sendEventSelf(finishNeighborDiscovery);
 
 		Simulation.Log.state("Discovering", NOT_DISCOVERING, getNode());
 
 		if (__schedules.size() == 0) {
+			__NodeState = new Sleeping();
+			Simulation.Log.state(NODE_STATE, NodeState.OFF, getNode());
 			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
 			sendEventSelf(createSchedule);
 		}
