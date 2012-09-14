@@ -289,8 +289,6 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		} else {
 
-			// Create handler to NeighborDiscoveryWUC and handle the sleep avoidance;
-
 			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
 			sendEventSelf(neighborDiscovery);
 
@@ -345,7 +343,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		__discoveryMode = false;
 
 		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize() * (numberOfKnownNeighbors() + 1)
-				* 1.5); continue from here
+				* 1.5);
 		sendEventSelf(finishNeighborDiscovery);
 
 		Simulation.Log.state("Discovering", NOT_DISCOVERING, getNode());
@@ -361,7 +359,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		int numberOfKnownNeighbors = 0;
 
 		for (Schedule schedule : __knownNeighbors.keySet()) {
-			numberOfKnownNeighbors += __knownNeighbors.get(schedule).size();
+			numberOfKnownNeighbors += knownNeighborsCountForSchedule(schedule);
 		}
 		return numberOfKnownNeighbors;
 	}
@@ -424,7 +422,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		Schedule schedule = new Schedule(SimulationManager.getInstance().getCurrentTime(), __timing.getEntireCycleSize());
 
 		followSchedule(schedule);
-
+		__currentSchedule = schedule;
 		// broadcastSchedule(schedule);
 	}
 
@@ -437,7 +435,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void process(CTSFrameStartWUC event) {
 		__frameFor = PacketType.CTS;
 
-		if (_ctsToSend != null) {// TODO - Start carrier sensing here
+		if (_ctsToSend != null) {
 			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
 		}
 	}
@@ -867,6 +865,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(WakeUpWUC wakeUp) {
+		if (!isFollowingSchedule(wakeUp.getSchedule())) {
+			return;
+		}
+
 		Simulation.Log.state(NODE_STATE, NodeState.AWAKEN, getNode());
 		__NodeState = new Listening();
 		__frameFor = PacketType.CONTROL;
@@ -959,10 +961,27 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void acceptSchedule(SchedulePacket schedulePacket) {
+		if (__currentSchedule != null && !(knownNeighborsCountForSchedule(__currentSchedule) > 0)) {
+			unfollowSchedule(__currentSchedule);
+		}
 
 		followSchedule(schedulePacket.getSchedule());
 		registerNeighbor(schedulePacket);
 		goSleepNow();
+	}
+
+	private int knownNeighborsCountForSchedule(Schedule _currentSchedule) {
+		Set<NodeId> knownNeighbors = __knownNeighbors.get(_currentSchedule);
+
+		if (knownNeighbors == null) {
+			return 0;
+		}
+
+		return knownNeighbors.size();
+	}
+
+	private void unfollowSchedule(Schedule _currentSchedule) {
+		__schedules.remove(_currentSchedule);
 	}
 
 	private void addKnownAgent(ElectorAgent agent) {
