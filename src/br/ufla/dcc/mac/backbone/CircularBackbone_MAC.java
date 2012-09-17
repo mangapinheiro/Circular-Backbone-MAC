@@ -68,10 +68,10 @@ import br.ufla.dcc.mac.backbone.packet.GoodnessPkt;
 import br.ufla.dcc.mac.backbone.packet.GoodnessRequestPkt;
 import br.ufla.dcc.mac.backbone.packet.MACAgent;
 import br.ufla.dcc.mac.backbone.packet.SchedulePacket;
-import br.ufla.dcc.mac.backbone.state.CarrierSensing;
-import br.ufla.dcc.mac.backbone.state.Listening;
+import br.ufla.dcc.mac.backbone.state.AbstractNodeState;
 import br.ufla.dcc.mac.backbone.state.NodeState;
 import br.ufla.dcc.mac.backbone.state.Sleeping;
+import br.ufla.dcc.mac.backbone.state.StateFactory;
 import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 import br.ufla.dcc.mac.backbone.wakeupcall.BroadcastScheduleDelayed;
 import br.ufla.dcc.mac.backbone.wakeupcall.CTSFrameStartWUC;
@@ -229,10 +229,10 @@ public class CircularBackbone_MAC extends MACLayer {
 	/** set to true, if the packet was received at least once. */
 	private boolean _currentWasReceivedOnce = false;
 
-	private NodeState __NodeState;
+	private AbstractNodeState _nodeState;
 
-	private final List<Schedule> __schedules;
-	private final Map<Schedule, Set<NodeId>> __knownNeighbors;
+	private final List<Schedule> _schedules;
+	private final Map<Schedule, Set<NodeId>> _knownNeighbors;
 
 	private double _distanceFromCenter = -1;
 
@@ -269,9 +269,20 @@ public class CircularBackbone_MAC extends MACLayer {
 		_droppedPackets = 0;
 		_promiscuous = false;
 
-		__NodeState = new Listening();
-		__schedules = new ArrayList<Schedule>();
-		__knownNeighbors = new HashMap<Schedule, Set<NodeId>>();
+		// setNodeState(NodeState.LISTENING);
+		_nodeState = null;
+		_schedules = new ArrayList<Schedule>();
+		_knownNeighbors = new HashMap<Schedule, Set<NodeId>>();
+	}
+
+	public void setNodeState(NodeState nodeState) {
+		_nodeState = StateFactory.createState(nodeState);
+		_nodeState.configureNode(getNode());
+		Simulation.Log.state(NODE_STATE, getNodeState().getId(), getNode());
+	}
+
+	public AbstractNodeState getNodeState() {
+		return _nodeState;
 	}
 
 	@Override
@@ -279,6 +290,8 @@ public class CircularBackbone_MAC extends MACLayer {
 		Address thisAddress = new Address(id, LayerType.MAC);
 		StatisticLogRequest slr = new StatisticLogRequest(thisAddress, getConfig().getSimulationSteps(1), DROPS_PER_SECOND);
 		sendEventSelf(slr);
+
+		goSleepNow();
 
 		if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
 						// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
@@ -330,17 +343,18 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(NeighborDiscoveryWUC discovery) {
 		__frameFor = PacketType.CONTROL;
+		setNodeState(NodeState.LISTENING);
 		__discoveryMode = true;
+		Simulation.Log.state("Discovering", DISCOVERING, getNode());
 
 		WakeUpCall finishNeighborDiscovery = new FinishNeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
 		sendEventSelf(finishNeighborDiscovery);
-
-		Simulation.Log.state("Discovering", DISCOVERING, getNode());
-		Simulation.Log.state(NODE_STATE, NodeState.ON, getNode());
 	}
 
 	@SuppressWarnings("unused")
 	private void process(FinishNeighborDiscoveryWUC discovery) {
+		setNodeState(NodeState.SLEEPING);
+
 		__discoveryMode = false;
 
 		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize()
@@ -349,19 +363,16 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		Simulation.Log.state("Discovering", NOT_DISCOVERING, getNode());
 
-		if (__schedules.size() == 0) {
-			__NodeState = new Sleeping();
-			Simulation.Log.state(NODE_STATE, NodeState.OFF, getNode());
+		if (_schedules.size() == 0) {
 			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
 			sendEventSelf(createSchedule);
 		}
-
 	}
 
 	private int numberOfKnownNeighbors() {
 		int numberOfKnownNeighbors = 0;
 
-		for (Schedule schedule : __knownNeighbors.keySet()) {
+		for (Schedule schedule : _knownNeighbors.keySet()) {
 			numberOfKnownNeighbors += knownNeighborsCountForSchedule(schedule);
 		}
 		return numberOfKnownNeighbors;
@@ -409,7 +420,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(BroadcastScheduleDelayed scheduleDelayed) {
-		if (thisNodeHasMultipleSchedules()) {
+		if (hasThisNodeMultipleSchedules()) {
 			// don't propagate
 			return;
 		}
@@ -559,15 +570,19 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(GoSleepWUC wakeUp) {
-		if (__discoveryMode) {
+		if (isInDiscoveryMode()) {
 			return;
 		}
 
 		if (_waitingForSleepTime == wakeUp) {
-			Simulation.Log.state(NODE_STATE, NodeState.SLEEPING, getNode());
-			__NodeState = new Sleeping();
+			setNodeState(NodeState.SLEEPING);
+			// _nodeState = new Sleeping();
 		}
-		// TODO - CHANGE THE STATE E CONFIGURE NODE
+	}
+
+	private boolean isInDiscoveryMode() {
+		return __discoveryMode;
+		// return getNodeState().isState(NodeState.DISCOVERY_MODE);
 	}
 
 	/**
@@ -579,6 +594,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings({ "unused" })
 	private void process(MACCarrierSensing macCS) {
 
+		setNodeState(NodeState.LISTENING);
 		LOGGER.debug("Ending carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
 
 		if (macCS.isNoCarrier()) {
@@ -872,14 +888,16 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
-		Simulation.Log.state(NODE_STATE, NodeState.AWAKEN, getNode());
-		__NodeState = new Listening();
+		if (isInDiscoveryMode()) {
+			sendEventSelf(wakeUp);
+			return;
+		}
+
+		setNodeState(NodeState.LISTENING);
+
 		__frameFor = PacketType.CONTROL;
 		__currentSchedule = wakeUp.getSchedule();
 
-		// TODO - Change node state using a StateManager
-
-		// scheduleGoSleep(__timing.getAwakeCycleSize());
 		startCarrierSense(0, time(__timing.getRandomContentionTime()));
 
 		WakeUpCall waitRTS = new RTSFrameStartWUC(getSender(), __timing.getListenPeriodForSync());
@@ -974,7 +992,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private int knownNeighborsCountForSchedule(Schedule _currentSchedule) {
-		Set<NodeId> knownNeighbors = __knownNeighbors.get(_currentSchedule);
+		Set<NodeId> knownNeighbors = _knownNeighbors.get(_currentSchedule);
 
 		if (knownNeighbors == null) {
 			return 0;
@@ -984,7 +1002,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void unfollowSchedule(Schedule _currentSchedule) {
-		__schedules.remove(_currentSchedule);
+		_schedules.remove(_currentSchedule);
 	}
 
 	private void addKnownAgent(ElectorAgent agent) {
@@ -1071,7 +1089,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		} else {
 			Simulation.Log.state("Margin", schedule.getId(), getNode());
 		}
-		__schedules.add(schedule);
+		_schedules.add(schedule);
 
 		scheduleWakeUpForSchedule(schedule);
 	}
@@ -1137,7 +1155,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private boolean hasSchedule() {
-		return __schedules.size() > 0;
+		return _schedules.size() > 0;
 	}
 
 	/**
@@ -1200,7 +1218,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private boolean isFollowingSchedule(Schedule schedule) {
-		return __schedules.contains(schedule);
+		return _schedules.contains(schedule);
 	}
 
 	/**
@@ -1258,7 +1276,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	@Override
 	public final void lowerSAP(Packet packet) {
 
-		if (__NodeState.getClass().equals(Sleeping.class)) {
+		if (_nodeState.getClass().equals(Sleeping.class)) {
 			return;
 		}
 
@@ -1372,11 +1390,11 @@ public class CircularBackbone_MAC extends MACLayer {
 	// #################################################################################################################
 
 	private void registerNeighbor(SchedulePacket schedulePacket) {
-		Set<NodeId> neighborsForSchedule = __knownNeighbors.get(schedulePacket.getSchedule());
+		Set<NodeId> neighborsForSchedule = _knownNeighbors.get(schedulePacket.getSchedule());
 
 		if (neighborsForSchedule == null) {
 			neighborsForSchedule = new TreeSet<NodeId>();
-			__knownNeighbors.put(schedulePacket.getSchedule(), neighborsForSchedule);
+			_knownNeighbors.put(schedulePacket.getSchedule(), neighborsForSchedule);
 		}
 
 		neighborsForSchedule.add(schedulePacket.getSender().getId());
@@ -1456,15 +1474,16 @@ public class CircularBackbone_MAC extends MACLayer {
 	@Override
 	public void startCarrierSense(double minFreeTime, double varFreeTime) {
 		LOGGER.debug("Start carrier sensing at " + SimulationManager.getInstance().getCurrentTime());
-		__NodeState = new CarrierSensing(); // TODO - Change this to a state manager
+
+		setNodeState(NodeState.CARRIERSENSING);
 		super.startCarrierSense(0, varFreeTime);
 	}
 
-	private boolean thisNodeHasMultipleSchedules() {
-		return __schedules != null && __schedules.size() > 1;
+	private boolean hasThisNodeMultipleSchedules() {
+		return _schedules != null && _schedules.size() > 1;
 	}
 
-	private boolean thisNodeIsNotGoodEnough() {
+	private boolean isThisNodeNotGoodEnough() {
 		return new Random().nextDouble() < GOODNESS_FACTOR;
 	}
 

@@ -6,6 +6,7 @@ import br.ufla.dcc.grubix.simulator.kernel.Configuration;
 
 public class BbMacTiming {
 
+	private static final double MAX_CONTENTION_TIME = 0.05;
 	private static final double LISTEN_PERIOD_FOR_SYNC_IN_SECONDS = 0.15;
 	private static final double LISTEN_PERIOD_FOR_RTS_IN_SECONDS = 0.25;
 	private static final double LISTEN_PERIOD_FOR_CTS_IN_SECONDS = 0.1;
@@ -162,7 +163,7 @@ public class BbMacTiming {
 	}
 
 	public double getRandomContentionTime() {
-		return RANDOM.nextDouble() * 0.1;
+		return RANDOM.nextDouble() * MAX_CONTENTION_TIME;
 	}
 
 	public double getListenPeriodForSync() {
