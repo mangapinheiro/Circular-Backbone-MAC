@@ -1,4 +1,5 @@
-##ShoX statistics file, created Sun Sep 16 21:02:03 BRT 2012
+##ShoX statistics file, created Mon Sep 17 22:45:39 BRT 2012
+st id2 lNET axtime ayHop+Count x12.0 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
@@ -83,6 +84,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x27002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x28002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x28002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x28002.0 y0
+st id1 lNET axtime ayHop+Count x28949.347063810215 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x29002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x29002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x29002.0 y0
@@ -254,6 +256,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x84002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x85002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x85002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x85002.0 y0
+st id2 lNET axtime ayHop+Count x85949.32324199873 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x86002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x86002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x86002.0 y0
@@ -263,6 +266,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x87002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x88002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x88002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x88002.0 y0
+st id3 lNET axtime ayHop+Count x88949.35006380272 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x89002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x89002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x89002.0 y0
@@ -272,6 +276,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x90002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x91002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x91002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x91002.0 y0
+st id2 lNET axtime ayHop+Count x91949.36686756641 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x92002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x92002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x92002.0 y0
@@ -281,6 +286,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x93002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x94002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x94002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x94002.0 y0
+st id3 lNET axtime ayHop+Count x94949.33200857045 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x95002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x95002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x95002.0 y0
@@ -290,6 +296,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x96002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x97002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x97002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x97002.0 y0
+st id2 lNET axtime ayHop+Count x97949.36953913789 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x98002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x98002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x98002.0 y0
@@ -299,6 +306,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x99002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x100002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x100002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x100002.0 y0
+st id3 lNET axtime ayHop+Count x100949.33117305493 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x101002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x101002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x101002.0 y0
@@ -308,6 +316,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x102002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x103002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x103002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x103002.0 y0
+st id2 lNET axtime ayHop+Count x103949.37087412985 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x104002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x104002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x104002.0 y0
@@ -317,6 +326,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x105002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x106002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x106002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x106002.0 y0
+st id3 lNET axtime ayHop+Count x106949.37288325075 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x107002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x107002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x107002.0 y0
@@ -326,6 +336,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x108002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x109002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x109002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x109002.0 y0
+st id2 lNET axtime ayHop+Count x109949.32479901142 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x110002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x110002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x110002.0 y0
@@ -335,6 +346,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x111002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x112002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x112002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x112002.0 y0
+st id3 lNET axtime ayHop+Count x112949.36537713683 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x113002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x113002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x113002.0 y0
@@ -344,6 +356,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x114002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x115002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x115002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x115002.0 y0
+st id2 lNET axtime ayHop+Count x115949.32588680414 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x116002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x116002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x116002.0 y0
@@ -353,6 +366,7 @@ st id3 lMAC axtime ayDropped+Packets+%2F+s x117002.0 y0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x118002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x118002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x118002.0 y0
+st id3 lNET axtime ayHop+Count x118949.36151208678 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x119002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x119002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x119002.0 y0

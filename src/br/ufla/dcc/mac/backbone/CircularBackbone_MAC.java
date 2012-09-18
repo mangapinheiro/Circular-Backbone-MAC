@@ -340,6 +340,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private boolean __discoveryMode = false;
 
+	private Schedule _mainSchedule;
+
 	@SuppressWarnings("unused")
 	private void process(NeighborDiscoveryWUC discovery) {
 		__frameFor = PacketType.CONTROL;
@@ -862,7 +864,26 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
+		if (knowsNeighbor(schedulePacket.getSender())) {
+			return;
+		}
+
 		acceptSchedule(schedulePacket);
+	}
+
+	private boolean knowsNeighbor(Address sender) {
+		return scheduleForNeighbor(sender.getId()) != null;
+	}
+
+	private Schedule scheduleForNeighbor(NodeId neighborId) {
+		for (Schedule schedule : _schedules) {
+			final Set<NodeId> knownNeighborsForSchedule = _knownNeighbors.get(schedule);
+			if (knownNeighborsForSchedule != null && knownNeighborsForSchedule.contains(neighborId)) {
+				return schedule;
+			}
+		}
+
+		return null;
 	}
 
 	@SuppressWarnings("unused")
@@ -893,6 +914,9 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
+		if (isTheScheduleWithMoreKnownNeighbors(__currentSchedule)) {
+
+		}
 		setNodeState(NodeState.LISTENING);
 
 		__frameFor = PacketType.CONTROL;
@@ -912,6 +936,20 @@ public class CircularBackbone_MAC extends MACLayer {
 		wakeUp = new WakeUpWUC(myAddress(), __timing.getEntireCycleSize(), wakeUp.getSchedule());
 		sendEventSelf(wakeUp);
 		// scheduleWakeUpForSchedule(__currentSchedule);
+	}
+
+	private boolean isTheScheduleWithMoreKnownNeighbors(Schedule schedule) {
+		return schedule == _mainSchedule;
+
+		// int countForSchedule = knownNeighborsCountForSchedule(schedule);
+		//
+		// for (Schedule schedule : _schedules) {
+		// if (knownNeighborsCountForSchedule(schedule) > countForSchedule) {
+		// return false;
+		// }
+		// }
+		//
+		// return true;
 	}
 
 	/**
@@ -982,12 +1020,13 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void acceptSchedule(SchedulePacket schedulePacket) {
+
 		if (__currentSchedule != null && !(knownNeighborsCountForSchedule(__currentSchedule) > 0)) {
 			unfollowSchedule(__currentSchedule);
 		}
 
 		followSchedule(schedulePacket.getSchedule());
-		registerNeighbor(schedulePacket);
+		registerNeighborForSchedule(schedulePacket.getSender().getId(), schedulePacket.getSchedule());
 		goSleepNow();
 	}
 
@@ -1001,8 +1040,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		return knownNeighbors.size();
 	}
 
-	private void unfollowSchedule(Schedule _currentSchedule) {
-		_schedules.remove(_currentSchedule);
+	private void unfollowSchedule(Schedule schedule) {
+		_schedules.remove(schedule);
+		_knownNeighbors.remove(schedule);
 	}
 
 	private void addKnownAgent(ElectorAgent agent) {
@@ -1086,9 +1126,11 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		if (!hasSchedule()) {
 			Simulation.Log.state("Schedule", schedule.getId(), getNode());
+			_mainSchedule = schedule;
 		} else {
 			Simulation.Log.state("Margin", schedule.getId(), getNode());
 		}
+
 		_schedules.add(schedule);
 
 		scheduleWakeUpForSchedule(schedule);
@@ -1276,6 +1318,20 @@ public class CircularBackbone_MAC extends MACLayer {
 	@Override
 	public final void lowerSAP(Packet packet) {
 
+		if (!_nodeState.acceptsPacket(packet)) {
+			return;
+		}
+
+		if (!knowsNeighbor(packet.getSender())) {
+			registerNeighborForSchedule(sender.getId(), __currentSchedule);
+		} else {
+			Schedule scheduleForNeighbor = scheduleForNeighbor(packet.getSender().getId());
+			if (knownNeighborsCountForSchedule(__currentSchedule) >= knownNeighborsCountForSchedule(scheduleForNeighbor)) {
+				unregisterNeighborForSchedule(packet.getSender().getId(), scheduleForNeighbor);
+				registerNeighborForSchedule(packet.getSender().getId(), __currentSchedule);
+			}
+		}
+
 		if (_nodeState.getClass().equals(Sleeping.class)) {
 			return;
 		}
@@ -1372,6 +1428,20 @@ public class CircularBackbone_MAC extends MACLayer {
 		}
 	}
 
+	private void unregisterNeighborForSchedule(NodeId neighborId, Schedule schedule) {
+		Set<NodeId> neighborsForSchedule = _knownNeighbors.get(schedule);
+
+		if (neighborsForSchedule == null) {
+			return;
+		}
+
+		neighborsForSchedule.remove(neighborId);
+
+		if (!(neighborsForSchedule.size() > 0)) {
+			unfollowSchedule(schedule);
+		}
+	}
+
 	private Address myAddress() {
 		return getSender();
 	}
@@ -1386,18 +1456,24 @@ public class CircularBackbone_MAC extends MACLayer {
 		packet.setReadyForTransmission(true);
 	}
 
-	// NEW IMPLEMENTATION ABOVE HERE
-	// #################################################################################################################
+	private void registerNeighborForSchedule(NodeId neighborId, Schedule schedule) {
 
-	private void registerNeighbor(SchedulePacket schedulePacket) {
-		Set<NodeId> neighborsForSchedule = _knownNeighbors.get(schedulePacket.getSchedule());
+		Next step: Fix the multi schedule problem. The nodes should be registering neighbor
+		in such a way they become listed in the schedule the node knows more neighbors
+		and also should unfollow the schedules with no neighbor if there is other to follow
+		
+		Set<NodeId> neighborsForSchedule = _knownNeighbors.get(schedule);
 
 		if (neighborsForSchedule == null) {
 			neighborsForSchedule = new TreeSet<NodeId>();
-			_knownNeighbors.put(schedulePacket.getSchedule(), neighborsForSchedule);
+			_knownNeighbors.put(schedule, neighborsForSchedule);
 		}
 
-		neighborsForSchedule.add(schedulePacket.getSender().getId());
+		neighborsForSchedule.add(neighborId);
+
+		if (isTheScheduleWithMoreKnownNeighbors(schedule)) {
+			_mainSchedule = schedule;
+		}
 	}
 
 	private void scheduleGoSleep(double delayInSteps) {
