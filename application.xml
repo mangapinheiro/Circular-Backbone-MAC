@@ -5,14 +5,14 @@
     <description write="bla" />
     
     <field>
-        <dimension x="33" y="33"/>
+        <dimension x="35" y="35"/>
     </field>
     
     <physicalmodel>
         <class>br.ufla.dcc.grubix.simulator.physical.UnitDisc</class>
         <params>
-          <param name="reachableDistance">30</param>
-          <param name="interferenceDistance">30</param>
+          <param name="reachableDistance">16</param>
+          <param name="interferenceDistance">16</param>
         </params>
     </physicalmodel>
     
@@ -25,7 +25,7 @@
     </bitmanglingmodel>
     
     <nodes>    
-        <node name="REGULAR" count="3">
+        <node name="REGULAR" count="10">
             <layers>
                 <operatingSystem>
                     <class>br.ufla.dcc.grubix.simulator.node.user.os.NullOperatingSystemLayer</class>
@@ -94,7 +94,9 @@
  	<positions>
         <generated>
             <generator>
-                <class>br.ufla.dcc.position.UniformlyRandomPositions</class>
+<!--                 <class>br.ufla.dcc.position.UniformlyRandomPositions</class> -->
+                <class>br.ufla.dcc.position.UniformlyDistributedPositions</class>
+                
                     <params>
                     </params>
             </generator>

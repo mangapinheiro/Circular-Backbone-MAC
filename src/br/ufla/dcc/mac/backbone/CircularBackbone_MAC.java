@@ -302,7 +302,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		} else {
 
-			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (new Random().nextFloat()) * __timing.getEntireCycleSize());
+			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (new Random().nextFloat() * __timing.getEntireCycleSize())
+					+ (__timing.getEntireCycleSize() * (getId().asInt() % 6)));
 			sendEventSelf(neighborDiscovery);
 
 			// TODO - Remove the wuc bellow and make it dependent on NeighborDiscovery;
@@ -311,6 +312,10 @@ public class CircularBackbone_MAC extends MACLayer {
 			// sendEventSelf(createSchedule);
 		}
 
+		
+		Find an algorithym to fix the synchronization of the nodes
+		
+		
 		// if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
 		// __centerNode = getNode();
 		// _distanceFromCenter = 0;
@@ -349,7 +354,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		__discoveryMode = true;
 		Simulation.Log.state("Discovering", DISCOVERING, getNode());
 
-		WakeUpCall finishNeighborDiscovery = new FinishNeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
+		WakeUpCall finishNeighborDiscovery = new FinishNeighborDiscoveryWUC(myAddress(), 3 * __timing.getEntireCycleSize());
 		sendEventSelf(finishNeighborDiscovery);
 	}
 
@@ -359,14 +364,14 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		__discoveryMode = false;
 
-		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize()
-				* ((numberOfKnownNeighbors() + 1) * 4) * 1.5);
+		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize() * ((numberOfKnownNeighbors() + 2))
+				* 1.5);
 		sendEventSelf(finishNeighborDiscovery);
 
 		Simulation.Log.state("Discovering", NOT_DISCOVERING, getNode());
 
 		if (_schedules.size() == 0) {
-			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
+			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), 0);// new Random().nextDouble() * __timing.getEntireCycleSize());
 			sendEventSelf(createSchedule);
 		}
 	}
@@ -439,7 +444,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		followSchedule(schedule);
 		__currentSchedule = schedule;
-		// broadcastSchedule(schedule);
+		broadcastSchedule(schedule); // ////""""""""""""""""""""""""""
 	}
 
 	@SuppressWarnings("unused")
@@ -939,7 +944,16 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private boolean isTheScheduleWithMoreKnownNeighbors(Schedule schedule) {
-		return schedule == _mainSchedule;
+		int neighborsCount = _knownNeighbors.get(schedule).size();
+		for (Schedule sch : _schedules) {
+			if (_knownNeighbors.get(sch).size() >= neighborsCount) {
+				return false;
+			}
+		}
+
+		return true;
+
+		// return schedule == _mainSchedule;
 
 		// int countForSchedule = knownNeighborsCountForSchedule(schedule);
 		//
@@ -1043,6 +1057,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void unfollowSchedule(Schedule schedule) {
 		_schedules.remove(schedule);
 		_knownNeighbors.remove(schedule);
+		Simulation.Log.state("NumberOfSchedules", _schedules.size(), getNode());
 	}
 
 	private void addKnownAgent(ElectorAgent agent) {
@@ -1134,6 +1149,12 @@ public class CircularBackbone_MAC extends MACLayer {
 		_schedules.add(schedule);
 
 		scheduleWakeUpForSchedule(schedule);
+		Simulation.Log.state("NumberOfSchedules", _schedules.size(), getNode());
+
+		if (__currentSchedule == null) {
+			WakeUpCall finshDiscovery = new FinishNeighborDiscoveryWUC(myAddress());
+			sendEventSelf(finshDiscovery);
+		}
 	}
 
 	private NodeId getBestCandidate(MACAgent agent) {
@@ -1322,13 +1343,16 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
-		if (!knowsNeighbor(packet.getSender())) {
-			registerNeighborForSchedule(sender.getId(), __currentSchedule);
-		} else {
-			Schedule scheduleForNeighbor = scheduleForNeighbor(packet.getSender().getId());
-			if (knownNeighborsCountForSchedule(__currentSchedule) >= knownNeighborsCountForSchedule(scheduleForNeighbor)) {
-				unregisterNeighborForSchedule(packet.getSender().getId(), scheduleForNeighbor);
-				registerNeighborForSchedule(packet.getSender().getId(), __currentSchedule);
+		if (hasSchedule()) {
+			if (!knowsNeighbor(packet.getSender())) {
+				registerNeighborForSchedule(sender.getId(), __currentSchedule);
+			} else {
+				Schedule scheduleForNeighbor = scheduleForNeighbor(packet.getSender().getId());
+				if (_mainSchedule == __currentSchedule && __currentSchedule != scheduleForNeighbor) {
+					// if (knownNeighborsCountForSchedule(__currentSchedule) >= knownNeighborsCountForSchedule(scheduleForNeighbor)) {
+					unregisterNeighborForSchedule(packet.getSender().getId(), scheduleForNeighbor);
+					registerNeighborForSchedule(packet.getSender().getId(), __currentSchedule);
+				}
 			}
 		}
 
@@ -1458,10 +1482,11 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private void registerNeighborForSchedule(NodeId neighborId, Schedule schedule) {
 
-		Next step: Fix the multi schedule problem. The nodes should be registering neighbor
-		in such a way they become listed in the schedule the node knows more neighbors
-		and also should unfollow the schedules with no neighbor if there is other to follow
-		
+		//
+		// Next step: Fix the multi schedule problem. The nodes should be registering neighbor
+		// in such a way they become listed in the schedule the node knows more neighbors
+		// and also should unfollow the schedules with no neighbor if there is other to follow
+
 		Set<NodeId> neighborsForSchedule = _knownNeighbors.get(schedule);
 
 		if (neighborsForSchedule == null) {
