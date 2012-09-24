@@ -95,6 +95,8 @@ import br.ufla.dcc.utils.Simulation;
 
 public class CircularBackbone_MAC extends MACLayer {
 
+	private static final Random RANDOM = new Random();
+
 	private static final Schedule DEFAULT_SCHEDULE = new Schedule(20, 1000);
 
 	private static final int BACKBONE_RADIUS = 100;
@@ -293,51 +295,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		goSleepNow();
 
-		if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
-						// &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-			_distanceFromCenter = getNode().getPosition().getDistance(
-					new Position(Configuration.getInstance().getXSize() / 2, Configuration.getInstance().getYSize() / 2));
+		WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * __timing.getEntireCycleSize())
+				+ (__timing.getEntireCycleSize() * (getId().asInt() % 6)));
 
-			this.followSchedule(DEFAULT_SCHEDULE);
-
-		} else {
-
-			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (new Random().nextFloat() * __timing.getEntireCycleSize())
-					+ (__timing.getEntireCycleSize() * (getId().asInt() % 6)));
-			sendEventSelf(neighborDiscovery);
-
-			// TODO - Remove the wuc bellow and make it dependent on NeighborDiscovery;
-			//
-			// WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
-			// sendEventSelf(createSchedule);
-		}
-
-		
-		Find an algorithym to fix the synchronization of the nodes
-		
-		
-		// if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
-		// __centerNode = getNode();
-		// _distanceFromCenter = 0;
-		// Simulation.Log.state("CenterNode", 1, __centerNode);
-		// Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
-		//
-		// if (DEBUG) { // &&&&&&&&&&&&&&&&&& THIS IS FOR DEBUGING PURPOSE (remove this if clause) &&&&&&&&&&&&&&&&&&&
-		// // &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-		//
-		// } else {
-		//
-		// // WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), new Random().nextDouble() * __timing.getEntireCycleSize());
-		// // sendEventSelf(createSchedule);
-		//
-		// WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));// TODO - Adjust this timing
-		// sendEventSelf(broadcastCenterFound);
-		// }
-		//
-		// BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
-		// WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
-		// sendEventSelf(broadcastBbBuilderAgent);
-		// }
+		sendEventSelf(neighborDiscovery);
 	}
 
 	private final int DISCOVERING = 9;
@@ -354,26 +315,35 @@ public class CircularBackbone_MAC extends MACLayer {
 		__discoveryMode = true;
 		Simulation.Log.state("Discovering", DISCOVERING, getNode());
 
-		WakeUpCall finishNeighborDiscovery = new FinishNeighborDiscoveryWUC(myAddress(), 3 * __timing.getEntireCycleSize());
+		WakeUpCall finishNeighborDiscovery = new FinishNeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize());
 		sendEventSelf(finishNeighborDiscovery);
 	}
 
 	@SuppressWarnings("unused")
 	private void process(FinishNeighborDiscoveryWUC discovery) {
+		if (hasSchedule()) {
+			turnOffDiscoveryMode();
+			return;
+		}
+
+		if (RANDOM.nextDouble() < 0.05) {
+			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), 0);// new Random().nextDouble() * __timing.getEntireCycleSize());
+			sendEventSelf(createSchedule);
+
+			turnOffDiscoveryMode();
+			return;
+		}
+
+		sendEventSelf(discovery);
+	}
+
+	private void turnOffDiscoveryMode() {
 		setNodeState(NodeState.SLEEPING);
-
 		__discoveryMode = false;
-
 		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize() * ((numberOfKnownNeighbors() + 2))
 				* 1.5);
 		sendEventSelf(finishNeighborDiscovery);
-
 		Simulation.Log.state("Discovering", NOT_DISCOVERING, getNode());
-
-		if (_schedules.size() == 0) {
-			WakeUpCall createSchedule = new CreateScheduleWUC(myAddress(), 0);// new Random().nextDouble() * __timing.getEntireCycleSize());
-			sendEventSelf(createSchedule);
-		}
 	}
 
 	private int numberOfKnownNeighbors() {
@@ -571,7 +541,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
 		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
 
-		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), new Random().nextDouble() * time(0.01), goodness);
+		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), RANDOM.nextDouble() * time(0.01), goodness);
 		sendEventSelf(sendGoodness);
 	}
 
@@ -919,15 +889,14 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
-		if (isTheScheduleWithMoreKnownNeighbors(__currentSchedule)) {
-
-		}
 		setNodeState(NodeState.LISTENING);
+
+		if (_mainSchedule == __currentSchedule) {
+			startCarrierSense(0, time(__timing.getRandomContentionTime()));
+		}
 
 		__frameFor = PacketType.CONTROL;
 		__currentSchedule = wakeUp.getSchedule();
-
-		startCarrierSense(0, time(__timing.getRandomContentionTime()));
 
 		WakeUpCall waitRTS = new RTSFrameStartWUC(getSender(), __timing.getListenPeriodForSync());
 		sendEventSelf(waitRTS);
@@ -943,27 +912,13 @@ public class CircularBackbone_MAC extends MACLayer {
 		// scheduleWakeUpForSchedule(__currentSchedule);
 	}
 
-	private boolean isTheScheduleWithMoreKnownNeighbors(Schedule schedule) {
-		int neighborsCount = _knownNeighbors.get(schedule).size();
+	private void findMainSchedule() {
+		int neighborsCount = _knownNeighbors.get(_mainSchedule).size();
 		for (Schedule sch : _schedules) {
-			if (_knownNeighbors.get(sch).size() >= neighborsCount) {
-				return false;
+			if (_knownNeighbors.get(sch).size() > neighborsCount) {
+				_mainSchedule = sch;
 			}
 		}
-
-		return true;
-
-		// return schedule == _mainSchedule;
-
-		// int countForSchedule = knownNeighborsCountForSchedule(schedule);
-		//
-		// for (Schedule schedule : _schedules) {
-		// if (knownNeighborsCountForSchedule(schedule) > countForSchedule) {
-		// return false;
-		// }
-		// }
-		//
-		// return true;
 	}
 
 	/**
@@ -1496,9 +1451,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		neighborsForSchedule.add(neighborId);
 
-		if (isTheScheduleWithMoreKnownNeighbors(schedule)) {
-			_mainSchedule = schedule;
-		}
+		findMainSchedule();
 	}
 
 	private void scheduleGoSleep(double delayInSteps) {
@@ -1585,7 +1538,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private boolean isThisNodeNotGoodEnough() {
-		return new Random().nextDouble() < GOODNESS_FACTOR;
+		return RANDOM.nextDouble() < GOODNESS_FACTOR;
 	}
 
 	public double time(double seconds) {
