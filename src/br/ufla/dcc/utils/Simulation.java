@@ -7,6 +7,10 @@ import br.ufla.dcc.grubix.simulator.node.Node;
 
 public class Simulation {
 	public static final class Log {
+		public static void NumberOfKnownNeighbors(int value, Node forNode) {
+			SimulationManager.logNodeState(forNode.getId(), "NumberOfKnownNeighbors", "int", String.valueOf(value));
+		}
+
 		public static void state(String name, int value, Node forNode) {
 			SimulationManager.logNodeState(forNode.getId(), name, "int", String.valueOf(value));
 		}

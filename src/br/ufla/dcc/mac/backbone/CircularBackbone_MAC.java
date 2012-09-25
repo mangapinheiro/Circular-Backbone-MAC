@@ -295,8 +295,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		goSleepNow();
 
-		WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * __timing.getEntireCycleSize())
-				+ (__timing.getEntireCycleSize() * (getId().asInt() % 6)));
+		WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * 10 * __timing.getEntireCycleSize()));
+		// + (__timing.getEntireCycleSize() * (getId().asInt() % 6)));
 
 		sendEventSelf(neighborDiscovery);
 	}
@@ -990,6 +990,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private void acceptSchedule(SchedulePacket schedulePacket) {
 
+		if (hasMultipleSchedules()) {
+			return;
+		}
+
 		if (__currentSchedule != null && !(knownNeighborsCountForSchedule(__currentSchedule) > 0)) {
 			unfollowSchedule(__currentSchedule);
 		}
@@ -1056,10 +1060,10 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void broadcastSchedule(Schedule schedule, double delay) {
-		// if (thisNodeHasMultipleSchedules()) {
-		// // don't propagate
-		// return;
-		// }
+		if (hasMultipleSchedules()) {
+			// don't propagate
+			return;
+		}
 
 		SchedulePacket schedulePacket = new SchedulePacket(myAddress(), NodeId.ALLNODES, schedule);
 
@@ -1070,6 +1074,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		SendDelayedWakeUp sendDelayedWakeUp = new BroadcastScheduleDelayed(myAddress(), delay, schedulePacket);
 		sendEventSelf(sendDelayedWakeUp);
+	}
+
+	private boolean hasMultipleSchedules() {
+		return _schedules.size() > 1;
 	}
 
 	/**
@@ -1452,6 +1460,8 @@ public class CircularBackbone_MAC extends MACLayer {
 		neighborsForSchedule.add(neighborId);
 
 		findMainSchedule();
+
+		Simulation.Log.NumberOfKnownNeighbors(numberOfKnownNeighbors(), getNode());
 	}
 
 	private void scheduleGoSleep(double delayInSteps) {
