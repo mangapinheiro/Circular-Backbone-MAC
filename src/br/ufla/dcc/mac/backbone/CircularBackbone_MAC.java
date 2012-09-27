@@ -295,7 +295,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		goSleepNow();
 
-		WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * 10 * __timing.getEntireCycleSize()));
+		WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * 3 * __timing.getEntireCycleSize()));
 		// + (__timing.getEntireCycleSize() * (getId().asInt() % 6)));
 
 		sendEventSelf(neighborDiscovery);
@@ -338,10 +338,20 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void turnOffDiscoveryMode() {
-		setNodeState(NodeState.SLEEPING);
+		scheduleGoSleep(__timing.getAwakeCycleSize());
 		__discoveryMode = false;
-		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), __timing.getEntireCycleSize() * ((numberOfKnownNeighbors() + 2))
-				* 1.5);
+		double variation = __timing.getEntireCycleSize() * RANDOM.nextDouble();
+		double normalInterval = __timing.getEntireCycleSize();
+
+		if (numberOfKnownNeighbors() == 0) {
+			normalInterval *= 3;
+		} else if (numberOfKnownNeighbors() < 3) {
+			normalInterval *= 7;
+		} else {
+			normalInterval *= 10;
+		}
+
+		WakeUpCall finishNeighborDiscovery = new NeighborDiscoveryWUC(myAddress(), variation + normalInterval);
 		sendEventSelf(finishNeighborDiscovery);
 		Simulation.Log.state("Discovering", NOT_DISCOVERING, getNode());
 	}
@@ -1000,7 +1010,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		followSchedule(schedulePacket.getSchedule());
 		registerNeighborForSchedule(schedulePacket.getSender().getId(), schedulePacket.getSchedule());
-		goSleepNow();
+
 	}
 
 	private int knownNeighborsCountForSchedule(Schedule _currentSchedule) {
@@ -1106,7 +1116,8 @@ public class CircularBackbone_MAC extends MACLayer {
 			Simulation.Log.state("Schedule", schedule.getId(), getNode());
 			_mainSchedule = schedule;
 		} else {
-			Simulation.Log.state("Margin", schedule.getId(), getNode());
+			Simulation.Log.state("Margin with schedule", schedule.getId(), getNode());
+			Simulation.Log.state("Margin node", 7`, getNode());
 		}
 
 		_schedules.add(schedule);
@@ -1471,9 +1482,12 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void scheduleWakeUpForSchedule(Schedule schedule) {
-		double delayInSteps = schedule.getDelay(SimulationManager.getInstance().getCurrentTime());
-		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayInSteps, schedule);
+		double currentTime = SimulationManager.getInstance().getCurrentTime();
+		double delayToWakeUpInSteps = schedule.getDelay(currentTime);
+		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayToWakeUpInSteps, schedule);
 		sendEventSelf(wakeUp);
+		double delayToSleepInSteps = delayToWakeUpInSteps - __timing.getEntireCycleSize() + __timing.getAwakeCycleSize();
+		scheduleGoSleep(delayToSleepInSteps);
 	}
 
 	private void sendLanPacket(WlanFramePacket goodnessPkt) {
