@@ -5,7 +5,7 @@
     <description write="bla" />
     
     <field>
-        <dimension x="70" y="70"/>
+        <dimension x="100" y="100"/>
     </field>
     
     <physicalmodel>
@@ -25,7 +25,7 @@
     </bitmanglingmodel>
     
     <nodes>    
-        <node name="REGULAR" count="50">
+        <node name="REGULAR" count="100">
             <layers>
                 <operatingSystem>
                     <class>br.ufla.dcc.grubix.simulator.node.user.os.NullOperatingSystemLayer</class>
@@ -103,5 +103,5 @@
             <targetfile>startpositions.xml</targetfile>
         </generated>
     </positions>
-    <simulationtime stepspersecond="1000" base="seconds">120</simulationtime>
+    <simulationtime stepspersecond="1000" base="seconds">600</simulationtime>
 </configuration>
