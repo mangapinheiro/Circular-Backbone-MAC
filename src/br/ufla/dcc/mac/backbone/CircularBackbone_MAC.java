@@ -95,6 +95,8 @@ import br.ufla.dcc.utils.Simulation;
 
 public class CircularBackbone_MAC extends MACLayer {
 
+	private static final int MARGIN_NODE = 7;
+
 	private static final Random RANDOM = new Random();
 
 	private static final Schedule DEFAULT_SCHEDULE = new Schedule(20, 1000);
@@ -261,7 +263,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	 * @param start
 	 *            StartSimulation event to start the layer.
 	 */
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 
 	private static int PKT_COUNT = 0;
 
@@ -271,7 +273,6 @@ public class CircularBackbone_MAC extends MACLayer {
 		_droppedPackets = 0;
 		_promiscuous = false;
 
-		// setNodeState(NodeState.LISTENING);
 		_nodeState = null;
 		_schedules = new ArrayList<Schedule>();
 		_knownNeighbors = new HashMap<Schedule, Set<NodeId>>();
@@ -295,8 +296,11 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		goSleepNow();
 
+		if (DEBUG) {
+			followSchedule(DEFAULT_SCHEDULE);
+		}
+
 		WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * 3 * __timing.getEntireCycleSize()));
-		// + (__timing.getEntireCycleSize() * (getId().asInt() % 6)));
 
 		sendEventSelf(neighborDiscovery);
 	}
@@ -1117,7 +1121,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			_mainSchedule = schedule;
 		} else {
 			Simulation.Log.state("Margin with schedule", schedule.getId(), getNode());
-			Simulation.Log.state("Margin node", 7`, getNode());
+			Simulation.Log.state("Margin node", MARGIN_NODE, getNode());
 		}
 
 		_schedules.add(schedule);
@@ -1183,9 +1187,6 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		return state;
 	}
-
-	// NEW IMPLEMENTATION ABOVE HERE
-	// #################################################################################################################
 
 	private void goSleepNow() {
 		scheduleGoSleep(0);
@@ -1456,7 +1457,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private void registerNeighborForSchedule(NodeId neighborId, Schedule schedule) {
 
-		//
+		if (schedule == null) {
+			return;
+		}
+
 		// Next step: Fix the multi schedule problem. The nodes should be registering neighbor
 		// in such a way they become listed in the schedule the node knows more neighbors
 		// and also should unfollow the schedules with no neighbor if there is other to follow
@@ -1487,7 +1491,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayToWakeUpInSteps, schedule);
 		sendEventSelf(wakeUp);
 		double delayToSleepInSteps = delayToWakeUpInSteps - __timing.getEntireCycleSize() + __timing.getAwakeCycleSize();
-		scheduleGoSleep(delayToSleepInSteps);
+		if (delayToSleepInSteps > 0) {
+			scheduleGoSleep(delayToSleepInSteps);
+		}
 	}
 
 	private void sendLanPacket(WlanFramePacket goodnessPkt) {
