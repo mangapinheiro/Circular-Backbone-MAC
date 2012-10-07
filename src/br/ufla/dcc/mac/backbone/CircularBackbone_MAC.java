@@ -70,7 +70,6 @@ import br.ufla.dcc.mac.backbone.packet.MACAgent;
 import br.ufla.dcc.mac.backbone.packet.SchedulePacket;
 import br.ufla.dcc.mac.backbone.state.AbstractNodeState;
 import br.ufla.dcc.mac.backbone.state.NodeState;
-import br.ufla.dcc.mac.backbone.state.Sleeping;
 import br.ufla.dcc.mac.backbone.state.StateFactory;
 import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 import br.ufla.dcc.mac.backbone.wakeupcall.BroadcastScheduleDelayed;
@@ -88,6 +87,7 @@ import br.ufla.dcc.mac.packet.AckPacket;
 import br.ufla.dcc.mac.packet.CTSPacket;
 import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.mac.packet.RTSPacket;
+import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
 
@@ -302,6 +302,20 @@ public class CircularBackbone_MAC extends MACLayer {
 			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * 3 * __timing.getEntireCycleSize()));
 			sendEventSelf(neighborDiscovery);
 		}
+
+		if (!isThereACenterNode() && verifyCenter(this.node.getPosition())) {
+			__centerNode = getNode();
+			_distanceFromCenter = 0;
+			Simulation.Log.state("CenterNode", 1, __centerNode);
+			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
+
+			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));// TODO - Adjust this timing
+			sendEventSelf(broadcastCenterFound);
+
+			// BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
+			// WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
+			// sendEventSelf(broadcastBbBuilderAgent);
+		}
 	}
 
 	private final int DISCOVERING = 9;
@@ -313,6 +327,10 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(NeighborDiscoveryWUC discovery) {
+		if (USE_DEFAULT_SCHEDULE) {
+			return;
+		}
+
 		__frameFor = PacketType.CONTROL;
 		setNodeState(NodeState.LISTENING);
 		__discoveryMode = true;
@@ -399,13 +417,12 @@ public class CircularBackbone_MAC extends MACLayer {
 			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.02), rootFinderAgent);
 			sendEventSelf(broadcastBbBuilderAgent);
 		}
-
 	}
 
 	@SuppressWarnings("unused")
 	private void process(BroadcastDistanceFromCenter broadcastDistance) {
-		// WlanFramePacket centerPacket = new DistanceFromCenterPacket(myAddress(), NodeId.ALLNODES, getDistanceFromCenter());
-		// sendLanPacket(centerPacket);
+		WlanFramePacket centerPacket = new DistanceFromCenterPacket(myAddress(), NodeId.ALLNODES, getDistanceFromCenter());
+		sendLanPacket(centerPacket);
 	}
 
 	@SuppressWarnings("unused")
@@ -521,7 +538,6 @@ public class CircularBackbone_MAC extends MACLayer {
 			WakeUpCall broadcastDistanceFromCenter = new BroadcastDistanceFromCenter(myAddress(), time(0.1));
 			sendEventSelf(broadcastDistanceFromCenter);
 		}
-
 	}
 
 	@SuppressWarnings("unused")
@@ -603,9 +619,25 @@ public class CircularBackbone_MAC extends MACLayer {
 
 			case RTS:
 
-				RTSPacket rts = new RTSPacket(myAddress(), packet.getReceiver());
-				applyDefaultBitrate(rts);
-				sendPacket(rts);
+				if (_outQueue.getFirst().getReceiver() == NodeId.ALLNODES) {
+					if (packet == null) {
+						LOGGER.warn("carrier sensing returned but no out packet present !");
+						return;
+					}
+
+					applyBitrate(packet, -1);
+					LOGGER.debug("Sent broadcast");
+					preparePacketToBeSent(packet);
+					sendPacket(packet);
+
+					Simulation.Log.state("Paquet sent", PKT_COUNT++, getNode());
+
+					break;
+				} else {
+					RTSPacket rts = new RTSPacket(myAddress(), packet.getReceiver());
+					applyDefaultBitrate(rts);
+					sendPacket(rts);
+				}
 
 				break;
 
@@ -1330,10 +1362,6 @@ public class CircularBackbone_MAC extends MACLayer {
 			}
 		}
 
-		if (_nodeState.getClass().equals(Sleeping.class)) {
-			return;
-		}
-
 		// if (!packetIsForThisNode(packet) && !packetIsForAllNodes(packet)) {
 		// return;
 		// }
@@ -1527,7 +1555,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private void setDistanceFromCenter(double distanceFromCenter) {
 		_distanceFromCenter = distanceFromCenter;
-		Simulation.Log.state("Radius", _distanceFromCenter, getNode());
+		Simulation.Log.state("Distance from center", (int) _distanceFromCenter, getNode());
 
 		int backboneRadius = 100;
 		int variation = 15;

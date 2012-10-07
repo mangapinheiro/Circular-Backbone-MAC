@@ -152,7 +152,7 @@ public class CircularBackboneNode extends ApplicationLayer {
 
 		Packet infinitForward = new InfiniteForwardPacket(getSender(), getNode().getNeighbors()
 				.get(Math.abs(new Random().nextInt()) % getNode().getNeighborCount()).getId());
-		this.sendPacket(infinitForward);
+		// this.sendPacket(infinitForward);
 	}
 
 	public void process(InfiniteForwardPacket pkt) {

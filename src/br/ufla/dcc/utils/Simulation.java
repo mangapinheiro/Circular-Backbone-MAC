@@ -1,29 +1,52 @@
 package br.ufla.dcc.utils;
 
+import java.util.ArrayList;
+
 import br.ufla.dcc.grubix.simulator.NodeId;
 import br.ufla.dcc.grubix.simulator.Position;
 import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.grubix.simulator.node.Node;
 
 public class Simulation {
+	private static String[] ignoredLogs = new String[] { "PKT TYPE", "Schedule", "NumberOfSchedule", "Goodness" };
+	private static ArrayList<String> ignoredLogsList = new ArrayList<String>();
+
+	static {
+		for (String ignored : ignoredLogs) {
+			ignoredLogsList.add(ignored);
+		}
+	}
+
 	public static final class Log {
 		public static void NumberOfKnownNeighbors(int value, Node forNode) {
 			SimulationManager.logNodeState(forNode.getId(), "NumberOfKnownNeighbors", "int", String.valueOf(value));
 		}
 
 		public static void state(String name, int value, Node forNode) {
+			if (ignoredLogsList.contains(name)) {
+				return;
+			}
 			SimulationManager.logNodeState(forNode.getId(), name, "int", String.valueOf(value));
 		}
 
 		public static void state(String name, float value, Node forNode) {
+			if (ignoredLogsList.contains(name)) {
+				return;
+			}
 			SimulationManager.logNodeState(forNode.getId(), name, "float", String.valueOf(value));
 		}
 
 		public static void state(String name, double value, Node forNode) {
+			if (ignoredLogsList.contains(name)) {
+				return;
+			}
 			SimulationManager.logNodeState(forNode.getId(), name, "float", String.valueOf(value));
 		}
 
 		public static void state(String name, long value, Node forNode) {
+			if (ignoredLogsList.contains(name)) {
+				return;
+			}
 			SimulationManager.logNodeState(forNode.getId(), name, "int", String.valueOf(value));
 		}
 	}

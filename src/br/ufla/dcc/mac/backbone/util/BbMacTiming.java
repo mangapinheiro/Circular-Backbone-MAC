@@ -13,8 +13,8 @@ public class BbMacTiming {
 	private static final double AWAKE_CYCLE_SECONDS = LISTEN_PERIOD_FOR_CTS_IN_SECONDS + LISTEN_PERIOD_FOR_RTS_IN_SECONDS
 			+ LISTEN_PERIOD_FOR_SYNC_IN_SECONDS;
 	// TODO - restore the following commented line
-	private static final double ENTIRE_CYCLE_IN_SECONDS = 10;
-	// private static final double ENTIRE_CYCLE_IN_SECONDS = 3;
+	// private static final double ENTIRE_CYCLE_IN_SECONDS = 10;
+	private static final double ENTIRE_CYCLE_IN_SECONDS = 3;
 	private static final Random RANDOM = new Random();
 
 	/** contains to the simulationsteps converted value of SIFS. */
