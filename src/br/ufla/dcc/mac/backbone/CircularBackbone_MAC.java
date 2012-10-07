@@ -265,6 +265,8 @@ public class CircularBackbone_MAC extends MACLayer {
 	 */
 	private static final boolean USE_DEFAULT_SCHEDULE = true;
 
+	private static final boolean USE_DEFAULT_DISTANCE_FROM_CENTER = true;
+
 	private static int PKT_COUNT = 0;
 
 	public CircularBackbone_MAC() {
@@ -303,18 +305,34 @@ public class CircularBackbone_MAC extends MACLayer {
 			sendEventSelf(neighborDiscovery);
 		}
 
-		if (!isThereACenterNode() && verifyCenter(this.node.getPosition())) {
-			__centerNode = getNode();
-			_distanceFromCenter = 0;
-			Simulation.Log.state("CenterNode", 1, __centerNode);
-			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
+		if (USE_DEFAULT_DISTANCE_FROM_CENTER) {
+			if (!isThereACenterNode() && verifyCenter(this.node.getPosition())) {
+				__centerNode = getNode();
+				_distanceFromCenter = 0;
+			} else {
+				double xSize = Configuration.getInstance().getXSize();
+				double ySize = Configuration.getInstance().getYSize();
 
-			WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));// TODO - Adjust this timing
-			sendEventSelf(broadcastCenterFound);
+				Position pos1 = new Position(xSize / 2, ySize / 2);
+				_distanceFromCenter = Simulation.Calculate.distanceBetweenPositions(pos1, getNode().getPosition());
+			}
 
-			// BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
-			// WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
-			// sendEventSelf(broadcastBbBuilderAgent);
+			Simulation.Log.state("DistanceFromCenter", (int) _distanceFromCenter, getNode());
+		} else {
+
+			if (!isThereACenterNode() && verifyCenter(this.node.getPosition())) {
+				__centerNode = getNode();
+				_distanceFromCenter = 0;
+				Simulation.Log.state("CenterNode", 1, __centerNode);
+				Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
+
+				WakeUpCall broadcastCenterFound = new BroadcastDistanceFromCenter(sender, time(0.1));// TODO - Adjust this timing
+				sendEventSelf(broadcastCenterFound);
+
+				// BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
+				// WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
+				// sendEventSelf(broadcastBbBuilderAgent);
+			}
 		}
 	}
 
