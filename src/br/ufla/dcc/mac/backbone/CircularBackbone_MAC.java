@@ -263,7 +263,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	 * @param start
 	 *            StartSimulation event to start the layer.
 	 */
-	private static final boolean DEBUG = true;
+	private static final boolean USE_DEFAULT_SCHEDULE = true;
 
 	private static int PKT_COUNT = 0;
 
@@ -296,13 +296,12 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		goSleepNow();
 
-		if (DEBUG) {
+		if (USE_DEFAULT_SCHEDULE) {
 			followSchedule(DEFAULT_SCHEDULE);
+		} else {
+			WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * 3 * __timing.getEntireCycleSize()));
+			sendEventSelf(neighborDiscovery);
 		}
-
-		WakeUpCall neighborDiscovery = new NeighborDiscoveryWUC(myAddress(), (RANDOM.nextFloat() * 3 * __timing.getEntireCycleSize()));
-
-		sendEventSelf(neighborDiscovery);
 	}
 
 	private final int DISCOVERING = 9;
@@ -1320,7 +1319,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		if (hasSchedule()) {
 			if (!knowsNeighbor(packet.getSender())) {
-				registerNeighborForSchedule(sender.getId(), __currentSchedule);
+				registerNeighborForSchedule(packet.getSender().getId(), __currentSchedule);
 			} else {
 				Schedule scheduleForNeighbor = scheduleForNeighbor(packet.getSender().getId());
 				if (_mainSchedule == __currentSchedule && __currentSchedule != scheduleForNeighbor) {
