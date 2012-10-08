@@ -309,6 +309,10 @@ public class CircularBackbone_MAC extends MACLayer {
 			if (!isThereACenterNode() && verifyCenter(this.node.getPosition())) {
 				__centerNode = getNode();
 				_distanceFromCenter = 0;
+
+				BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
+				WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
+				sendEventSelf(broadcastBbBuilderAgent);
 			} else {
 				double xSize = Configuration.getInstance().getXSize();
 				double ySize = Configuration.getInstance().getYSize();
@@ -515,7 +519,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			agent.setSender(this.getSender());
 			agent.setupToForwardTo(chosenCandidate);
 
-			// sendLanPacket(agent);
+			sendLanPacket(agent);
 		} else {
 
 			// TODO - HANDLE "NO CANDIDATES FOUND"
@@ -563,9 +567,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		_neighborGoodness.put(findTarget.getAgent().getIdentifier(), new TreeSet<NeighborGoodness>());
 
 		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
-		// sendLanPacket(goodnessRequest);
+		sendLanPacket(goodnessRequest);
 
-		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), time(0.1), findTarget.getAgent());
+		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), 4 * __timing.getEntireCycleSize(), findTarget.getAgent());
 		sendEventSelf(disseminateAgent);
 	}
 
