@@ -503,7 +503,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			scheduleGoSleep(__timing.getAwakeCycleSize());
 		}
 
-		if (_willSendData) {
+		if (_willSendData) { // TODO - Improve these conditionals
 			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
 		}
 
@@ -641,7 +641,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 			case RTS:
 
-				if (_outQueue.getFirst().getReceiver() == NodeId.ALLNODES) {
+				if (packet.getReceiver() == NodeId.ALLNODES) {
 					if (packet == null) {
 						LOGGER.warn("carrier sensing returned but no out packet present !");
 						return;
@@ -651,6 +651,7 @@ public class CircularBackbone_MAC extends MACLayer {
 					LOGGER.debug("Sent broadcast");
 					preparePacketToBeSent(packet);
 					sendPacket(packet);
+					_outQueue.remove(packet);
 
 					Simulation.Log.state("Paquet sent", PKT_COUNT++, getNode());
 
@@ -680,6 +681,7 @@ public class CircularBackbone_MAC extends MACLayer {
 					return;
 				}
 
+				applyBitrate(packet, -1);
 				preparePacketToBeSent(packet);
 				sendPacket(packet);
 
@@ -930,7 +932,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(SendDelayedWakeUp sendDelayed) {
-		sendPacketDown((WlanFramePacket) sendDelayed.getPkt());
+		sendLanPacket((WlanFramePacket) sendDelayed.getPkt());
+		// sendPacketDown((WlanFramePacket) sendDelayed.getPkt());JKJKL;J
 	}
 
 	@SuppressWarnings("unused")
