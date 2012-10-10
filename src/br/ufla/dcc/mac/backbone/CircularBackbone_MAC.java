@@ -1,6 +1,5 @@
 package br.ufla.dcc.mac.backbone;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,7 +15,6 @@ import org.apache.log4j.Logger;
 
 import br.ufla.dcc.event.wuc.BroadcastDistanceFromCenter;
 import br.ufla.dcc.grubix.simulator.Address;
-import br.ufla.dcc.grubix.simulator.Interval;
 import br.ufla.dcc.grubix.simulator.LayerException;
 import br.ufla.dcc.grubix.simulator.LayerType;
 import br.ufla.dcc.grubix.simulator.NodeId;
@@ -28,7 +26,6 @@ import br.ufla.dcc.grubix.simulator.event.Initialize;
 import br.ufla.dcc.grubix.simulator.event.LayerState;
 import br.ufla.dcc.grubix.simulator.event.LogLinkPacket;
 import br.ufla.dcc.grubix.simulator.event.MACCarrierSensing;
-import br.ufla.dcc.grubix.simulator.event.MACEvent;
 import br.ufla.dcc.grubix.simulator.event.MACPacket.PacketType;
 import br.ufla.dcc.grubix.simulator.event.MACProcessAckTimeout;
 import br.ufla.dcc.grubix.simulator.event.MACSendACK;
@@ -48,13 +45,11 @@ import br.ufla.dcc.grubix.simulator.event.user.SendDelayedWakeUp;
 import br.ufla.dcc.grubix.simulator.event.user.WlanFramePacket;
 import br.ufla.dcc.grubix.simulator.kernel.Configuration;
 import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
-import br.ufla.dcc.grubix.simulator.node.AirState;
 import br.ufla.dcc.grubix.simulator.node.BitrateAdaptationPolicy;
 import br.ufla.dcc.grubix.simulator.node.Link;
 import br.ufla.dcc.grubix.simulator.node.MACLayer;
 import br.ufla.dcc.grubix.simulator.node.MACState;
 import br.ufla.dcc.grubix.simulator.node.Node;
-import br.ufla.dcc.grubix.simulator.node.RadioState;
 import br.ufla.dcc.grubix.simulator.node.user.AARFRateAdaptation;
 import br.ufla.dcc.grubix.simulator.node.user.CarrierSenseInterruptedEvent;
 import br.ufla.dcc.grubix.simulator.node.user.IEEE_802_11_TimingParameters;
@@ -577,8 +572,8 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void process(GoodnessPkt goodnessPkt) {
 		goodnessPkt.getSenderGoodness();
 
-		NeighborGoodness NeighborGoodness = new NeighborGoodness(goodnessPkt.getSender().getId(), goodnessPkt.getSenderGoodness());
-		getGoodnessListForAgent(goodnessPkt.getAgent()).add(NeighborGoodness);
+		NeighborGoodness neighborGoodness = new NeighborGoodness(goodnessPkt.getSender().getId(), goodnessPkt.getSenderGoodness());
+		getGoodnessListForAgent(goodnessPkt.getAgent()).add(neighborGoodness);
 	}
 
 	@SuppressWarnings("unused")
@@ -933,7 +928,6 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(SendDelayedWakeUp sendDelayed) {
 		sendLanPacket((WlanFramePacket) sendDelayed.getPkt());
-		// sendPacketDown((WlanFramePacket) sendDelayed.getPkt());JKJKL;J
 	}
 
 	@SuppressWarnings("unused")
@@ -979,7 +973,6 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		wakeUp = new WakeUpWUC(myAddress(), __timing.getEntireCycleSize(), wakeUp.getSchedule());
 		sendEventSelf(wakeUp);
-		// scheduleWakeUpForSchedule(__currentSchedule);
 	}
 
 	private void findMainSchedule() {
@@ -1387,94 +1380,36 @@ public class CircularBackbone_MAC extends MACLayer {
 			}
 		}
 
-		// if (!packetIsForThisNode(packet) && !packetIsForAllNodes(packet)) {
-		// return;
-		// }
+		WlanFramePacket frame = (WlanFramePacket) packet;
 
-		try {
-			Method declaredMethod = getClass().getDeclaredMethod("process", packet.getClass());
-			declaredMethod.invoke(this, packet);
-			return;
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			LOGGER.error("This layer doesn't handle packets of type " + packet.getClass().getName());
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		WlanFramePacket frame = (WlanFramePacket) packet, ack;
-
-		/*
-		 * On any modification of this method, please ensure, that trySend() will be called after the reception of a packet, since this might have
-		 * blocked a new outgoing packet from being sent.
-		 */
 		boolean doDropPacket = !isPacketForThisNode(frame) && !isPacketForAllNodes(frame);
-		NodeId senderId = frame.getSender().getId();
-
-		if (doDropPacket && _promiscuous && !frame.isTerminal() && !senderId.equals(id)) {
-			doDropPacket = false;
-		}
 
 		if (doDropPacket) {
-			if (LOGGER.isDebugEnabled()) { // check if enabled to reduce
-											// performance impact
+			if (LOGGER.isDebugEnabled()) { // check if enabled to reduce performance impact
 				LOGGER.debug("Packet not for this node. Throwing away " + frame);
 			}
-			// advance queue after receiving neither a broadcast nor a packet
-			// for this node.
-			// +++++++++++++ trySend(0); // #0#
+
+			goSleepNow();
+			return;
+
 		} else {
-			if (isPacketForThisNode(frame) && frame.isTerminal() && (frame.isControl())) {
-				switch (frame.getType()) {
-				case ACK:
-					_pendingACK = false;
-					_immediateSend = true;
-					break;
-				case RTS:
-					break;
-				case CTS:
-					break;
-				default:
-					break;
-				}
-				// TODO handle MAC control packets, like [rts, cts]
 
-				// no trySend() needeed here, since the wakeupcall processing
-				// MACProcessAckTimeout will handle this.
+			if (frame.isTerminal()) {
+				try {
+					Method declaredMethod = getClass().getDeclaredMethod("process", packet.getClass());
+					declaredMethod.invoke(this, packet);
+				} catch (Exception e) {
+					e.printStackTrace();
+					LOGGER.error("Node couldn't handle packet: " + packet);
+				}
 			} else {
-
 				sendPacket(frame.getEnclosedPacket());
+			}
 
-				if (frame.isAckRequested()) {
-					_willSendACK = true;
-
-					ack = new AckPacket(sender, packet.getSender().getId(), frame.getSignalStrength());
-
-					applyBitrate(ack, frame.getBitrateIdx());
-					sendPacket(ack);
-					//
-					// WakeUpCall wuc = new MACSendACK(sender, globalTimings.getSifs(), ack);
-					// sendEventSelf(wuc);
-
-					// no trySend() here, since any send prior the send of the
-					// ack makes no sense.
-				} else {
-					if (_backoffAfterReceivedBroadcast && isPacketForAllNodes(packet)) {
-						setBackoffTime();
-					}
-
-					// advance queue after receiving a broadcast.
-					// +++++++++++++ trySend(1); // #1#
-				}
+			if (isPacketForThisNode(frame) && frame.isAckRequested()) {
+				AckPacket ack = new AckPacket(sender, packet.getSender().getId(), frame.getSignalStrength());
+				applyBitrate(ack, frame.getBitrateIdx());
+				sendPacket(ack);
 			}
 		}
 	}
@@ -1638,71 +1573,6 @@ public class CircularBackbone_MAC extends MACLayer {
 	protected void tryHandleDroppedPacket(RejectedPacketEvent rpe, WlanFramePacket frame) {
 		// here the packet is just dropped. override this, to change the
 		// behavior (see DBG variant).
-	}
-
-	/**
-	 * internal method, to process the outQueue, fetch the next packet and send it.
-	 * 
-	 * @return true if a carrier sense was started.
-	 */
-	protected final boolean trySend(int posIdx) {
-		_lastTrySendPos = posIdx;
-		/*
-		 * There is no periodic event issued (polling), where it is checked, if a packet is in the out queue and can be sent. It has to be ensured,
-		 * that for every to be sent packet, at least once trySend() is called and is leading to a carrier sense, which uppon completion will actually
-		 * send a packet or issue another trySend() with a changed backoff time. Thus trySend() is to be called after entering a new packet to the out
-		 * queue, after the reception of a packet (which may have blocked sending another packet) and of course after the reception of a packet. If
-		 * this is not done immediately, it has to be ensured, that it will definitely done later. Otherwhise, the out queue will contain some to be
-		 * send packets at the end of the simulation.
-		 */
-
-		boolean ok = ((_currentOutPacket == null) && (_outQueue.size() > 0))
-				|| ((_currentOutPacket != null) && _currentOutPacket.isReadyForTransmission());
-
-		if (ok && !_willSendACK && !_pendingCS && !_pendingACK) {
-			AirState airState = (AirState) getNode().getLayerState(LayerType.AIR);
-			PhysicalLayerState phyState = (PhysicalLayerState) getNode().getLayerState(LayerType.PHYSICAL);
-			RadioState radioState = phyState.getRadioState();
-			boolean radioFree = radioState == RadioState.LISTENING;
-
-			if (radioFree) {
-				_pendingCS = true;
-
-				double difs = globalTimings.getDifs();
-
-				if (_immediateSend) {
-					// as.getLastInterference().getEnd(); this would include own
-					// transmissions too
-					if ((airState == null) || (airState.getInterQueue().getMaxTime() + difs > getNode().getCurrentTime())) {
-						calcBackoffTime(0.0);
-					}
-				}
-
-				if (_immediateSend) {
-					startCarrierSense(difs, 0.0);
-				} else {
-					startCarrierSense(difs, _backoffTime);
-				}
-				return true;
-			} else {
-				if (airState != null) {
-					Interval lastIncoming = airState.getLastIncoming();
-
-					if (lastIncoming != null) {
-						double end = lastIncoming.getEnd();
-						double now = node.getCurrentTime();
-
-						if (end > now) {
-							if (LOGGER.isDebugEnabled()) {
-								LOGGER.debug("initiate a delayed trySend()");
-							}
-							sendEventSelf(new MACEvent(sender, end - now));
-						}
-					}
-				}
-			}
-		}
-		return false;
 	}
 
 	/**

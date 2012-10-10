@@ -11,6 +11,11 @@ import br.ufla.dcc.grubix.simulator.NodeId;
  */
 public class NeighborGoodness implements Comparable<NeighborGoodness> {
 
+	@Override
+	public String toString() {
+		return "NeighborGoodness [nodeId=" + nodeId + ", goodness=" + goodness + "]";
+	}
+
 	private NodeId nodeId;
 	private Double goodness;
 
@@ -22,6 +27,7 @@ public class NeighborGoodness implements Comparable<NeighborGoodness> {
 		this.setGoodness(nGnesss);
 	}
 
+	@Override
 	public int compareTo(NeighborGoodness nGnesss) {
 		if (this.goodness < nGnesss.getGoodness()) {
 			return -1;
