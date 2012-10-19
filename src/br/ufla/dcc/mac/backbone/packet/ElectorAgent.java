@@ -6,9 +6,13 @@ import br.ufla.dcc.grubix.simulator.node.Node;
 
 public abstract class ElectorAgent extends MACAgent {
 
-	public ElectorAgent(Address sender, NodeId receiver, PacketType type, double signalStrength) {
-		super(sender, receiver, type, signalStrength);
+	public ElectorAgent(Address sender, NodeId receiver, double signalStrength, int hopsEquality) {
+		super(sender, receiver, PacketType.DATA, signalStrength, hopsEquality);
 	}
 
 	public abstract double evaluate(Node node);
+
+	public boolean isEqualSinceHop(int hop) {
+		return this.getHops() > hop + this.getHopsEquality();
+	}
 }

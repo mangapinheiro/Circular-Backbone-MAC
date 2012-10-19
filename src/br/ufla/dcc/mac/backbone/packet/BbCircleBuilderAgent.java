@@ -15,7 +15,7 @@ public class BbCircleBuilderAgent extends ElectorAgent {
 	}
 
 	public BbCircleBuilderAgent(Address sender, NodeId receiver, PacketType type, double signalStrength, int radius) {
-		super(sender, receiver, type, signalStrength);
+		super(sender, receiver, signalStrength, 5);
 		_radius = radius;
 	}
 

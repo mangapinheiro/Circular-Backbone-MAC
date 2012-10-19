@@ -15,11 +15,11 @@ public class BbCircleRootFinderAgent extends ElectorAgent {
 	private final double _tolerance = DEFAULT_TOLERANCE;
 
 	public BbCircleRootFinderAgent(Address sender, NodeId receiver, int radius) {
-		this(sender, receiver, PacketType.CONTROL, 6, radius);
+		this(sender, receiver, 6, radius);
 	}
 
-	public BbCircleRootFinderAgent(Address sender, NodeId receiver, PacketType type, double signalStrength, int radius) {
-		super(sender, receiver, type, signalStrength);
+	public BbCircleRootFinderAgent(Address sender, NodeId receiver, double signalStrength, int radius) {
+		super(sender, receiver, signalStrength, 5);
 		_radius = radius;
 	}
 

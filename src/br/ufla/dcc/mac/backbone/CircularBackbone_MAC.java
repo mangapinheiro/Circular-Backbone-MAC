@@ -96,7 +96,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private static final Schedule DEFAULT_SCHEDULE = new Schedule(20, 1000);
 
-	private static final int BACKBONE_RADIUS = 100;
+	private static final int BACKBONE_RADIUS = 50;
 
 	private static final String NODE_STATE = "NodeState";
 
@@ -238,7 +238,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	private static Node __centerNode;
 
 	private final Map<Integer, SortedSet<NeighborGoodness>> _neighborGoodness = new HashMap<Integer, SortedSet<NeighborGoodness>>();
-	private final ArrayList<Integer> _knownAgents = new ArrayList<Integer>();
+	private final HashMap<Integer, Integer> _knownAgents = new HashMap<Integer, Integer>();
 
 	private PacketType __frameFor;
 
@@ -261,6 +261,8 @@ public class CircularBackbone_MAC extends MACLayer {
 	private static final boolean USE_DEFAULT_SCHEDULE = true;
 
 	private static final boolean USE_DEFAULT_DISTANCE_FROM_CENTER = true;
+
+	private static final boolean USE_DEFAULT_OMNISCIENT_NEIGHBOR_GOODNESS = true;
 
 	private static int PKT_COUNT = 0;
 
@@ -306,7 +308,7 @@ public class CircularBackbone_MAC extends MACLayer {
 				_distanceFromCenter = 0;
 
 				BbCircleRootFinderAgent bbBuilderAgent = new BbCircleRootFinderAgent(sender, NodeId.ALLNODES, BACKBONE_RADIUS);
-				WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.2), bbBuilderAgent);
+				WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, __timing.getEntireCycleSize(), bbBuilderAgent);
 				sendEventSelf(broadcastBbBuilderAgent);
 			} else {
 				double xSize = Configuration.getInstance().getXSize();
@@ -415,7 +417,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 		Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
 
-		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, time(0.02), circleBuilder);
+		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), circleBuilder);
 		sendEventSelf(forwardBackboneBuilder);
 	}
 
@@ -428,10 +430,10 @@ public class CircularBackbone_MAC extends MACLayer {
 			BbCircleBuilderAgent circleBuilder = rootFinderAgent.createBuilder();
 			Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
 
-			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, time(0.02), circleBuilder);
+			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), circleBuilder);
 			sendEventSelf(forwardBackboneBuilder);
 		} else {
-			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, time(0.02), rootFinderAgent);
+			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), rootFinderAgent);
 			sendEventSelf(broadcastBbBuilderAgent);
 		}
 	}
@@ -561,17 +563,21 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void process(FindAgentTarget findTarget) {
 		_neighborGoodness.put(findTarget.getAgent().getIdentifier(), new TreeSet<NeighborGoodness>());
 
-		GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
-		sendLanPacket(goodnessRequest);
+		if (USE_DEFAULT_OMNISCIENT_NEIGHBOR_GOODNESS) {
+			WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), __timing.getAwakeCycleSize(), findTarget.getAgent());
+			sendEventSelf(disseminateAgent);
+		} else {
+			GoodnessRequestPkt goodnessRequest = new GoodnessRequestPkt(myAddress(), NodeId.ALLNODES, findTarget.getAgent());
+			sendLanPacket(goodnessRequest);
 
-		WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), 4 * __timing.getEntireCycleSize(), findTarget.getAgent());
-		sendEventSelf(disseminateAgent);
+			WakeUpCall disseminateAgent = new DisseminateAgent(myAddress(), 4 * __timing.getEntireCycleSize(), findTarget.getAgent());
+			sendEventSelf(disseminateAgent);
+		}
+
 	}
 
 	@SuppressWarnings("unused")
 	private void process(GoodnessPkt goodnessPkt) {
-		goodnessPkt.getSenderGoodness();
-
 		NeighborGoodness neighborGoodness = new NeighborGoodness(goodnessPkt.getSender().getId(), goodnessPkt.getSenderGoodness());
 		getGoodnessListForAgent(goodnessPkt.getAgent()).add(neighborGoodness);
 	}
@@ -587,8 +593,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		GoodnessPkt goodness = goodnessRequest.evaluate(getNode());
 		Simulation.Log.state("MAC_Goodness", goodness.getSenderGoodness(), getNode());
 
-		WakeUpCall sendGoodness = new SendDelayedWakeUp(myAddress(), RANDOM.nextDouble() * time(0.01), goodness);
-		sendEventSelf(sendGoodness);
+		sendLanPacket(goodness);
 	}
 
 	@SuppressWarnings("unused")
@@ -1083,7 +1088,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void addKnownAgent(ElectorAgent agent) {
-		_knownAgents.add(agent.getIdentifier());
+		_knownAgents.put(agent.getIdentifier(), agent.getHops());
 	}
 
 	/**
@@ -1185,11 +1190,40 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private NodeId getBestCandidate(MACAgent agent) {
-		if (_neighborGoodness.get(agent.getIdentifier()).isEmpty()) {
-			return null;
-		}
+		if (USE_DEFAULT_OMNISCIENT_NEIGHBOR_GOODNESS) {
+			Node bestCandidate = null;
+			double bestCandidateGoodness = 0;
 
-		return _neighborGoodness.get(agent.getIdentifier()).last().getNodeId();
+			for (Node node : getNode().getNeighbors()) {
+				CircularBackbone_MAC macLayer = (CircularBackbone_MAC) node.getLayer(LayerType.MAC);
+
+				ElectorAgent electorAgent = (ElectorAgent) agent;
+
+				if (macLayer.knowsAgent(electorAgent)) {
+					continue;
+				}
+
+				macLayer.addKnownAgent(electorAgent);
+
+				double evaluation = electorAgent.evaluate(node);
+
+				if (bestCandidate == null || evaluation > bestCandidateGoodness) {
+					bestCandidate = node;
+					bestCandidateGoodness = evaluation;
+				}
+			}
+
+			return bestCandidate.getId();
+
+		} else {
+
+			if (_neighborGoodness.get(agent.getIdentifier()).isEmpty()) {
+				return null;
+			}
+
+			return _neighborGoodness.get(agent.getIdentifier()).last().getNodeId();
+
+		}
 	}
 
 	public double getDistanceFromCenter() {
@@ -1337,7 +1371,13 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private boolean knowsAgent(ElectorAgent agent) {
-		return _knownAgents.contains(agent.getIdentifier());
+		Integer knewAtHop = _knownAgents.get(agent.getIdentifier());
+
+		if (knewAtHop != null) {
+			return agent.isEqualSinceHop(knewAtHop.intValue());
+		}
+
+		return false;
 	}
 
 	/**
@@ -1483,9 +1523,9 @@ public class CircularBackbone_MAC extends MACLayer {
 		}
 	}
 
-	private void sendLanPacket(WlanFramePacket goodnessPkt) {
+	private void sendLanPacket(WlanFramePacket lanPkt) {
 		// applyDefaultBitrate(goodnessPkt);
-		_outQueue.add(goodnessPkt);
+		_outQueue.add(lanPkt);
 		// sendPacket(goodnessPkt);
 	}
 
@@ -1517,7 +1557,11 @@ public class CircularBackbone_MAC extends MACLayer {
 		_distanceFromCenter = distanceFromCenter;
 		Simulation.Log.state("Distance from center", (int) _distanceFromCenter, getNode());
 
-		int backboneRadius = 100;
+		double xSize = Configuration.getInstance().getXSize();
+		double ySize = Configuration.getInstance().getYSize();
+
+		// int backboneRadius = (int) (xSize > ySize ? ySize / 4 : xSize / 4);
+		int backboneRadius = BACKBONE_RADIUS;
 		int variation = 15;
 
 		if (_distanceFromCenter > backboneRadius - variation && _distanceFromCenter < backboneRadius + variation) {
