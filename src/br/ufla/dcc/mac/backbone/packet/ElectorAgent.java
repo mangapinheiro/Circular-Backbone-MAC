@@ -13,6 +13,6 @@ public abstract class ElectorAgent extends MACAgent {
 	public abstract double evaluate(Node node);
 
 	public boolean isEqualSinceHop(int hop) {
-		return this.getHops() > hop + this.getHopsEquality();
+		return hop + this.getHopsEquality() > this.getHops();
 	}
 }
