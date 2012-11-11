@@ -58,6 +58,7 @@ import br.ufla.dcc.grubix.xml.ConfigurationException;
 import br.ufla.dcc.grubix.xml.ShoXParameter;
 import br.ufla.dcc.mac.backbone.packet.BbCircleBuilderAgent;
 import br.ufla.dcc.mac.backbone.packet.BbCircleRootFinderAgent;
+import br.ufla.dcc.mac.backbone.packet.BbRevokerAgent;
 import br.ufla.dcc.mac.backbone.packet.ElectorAgent;
 import br.ufla.dcc.mac.backbone.packet.GoodnessPkt;
 import br.ufla.dcc.mac.backbone.packet.GoodnessRequestPkt;
@@ -344,6 +345,12 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private Schedule _mainSchedule;
 
+	private NodeId _backboneParent;
+
+	private NodeId _backboneChild;
+
+	private BbCircleBuilderAgent _circleNodeForAgent;
+
 	@SuppressWarnings("unused")
 	private void process(NeighborDiscoveryWUC discovery) {
 		if (USE_DEFAULT_SCHEDULE) {
@@ -413,22 +420,49 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@SuppressWarnings("unused")
 	private void process(BbCircleBuilderAgent circleBuilder) {
-		Simulation.Log.state("Visited by agent", circleBuilder.getIdentifier(), getNode());
+		if (hasParentNode()) {
+			revokeParentRelationship();
+			Simulation.Log.CircleClosedInNode(getNode());
+		} else {
+			Simulation.Log.VisitedByAgent(circleBuilder.getIdentifier(), getNode());
+			setCircleNodeForAgent(circleBuilder);
 
-		Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
+			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), circleBuilder);
+			sendEventSelf(forwardBackboneBuilder);
+		}
 
-		WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), circleBuilder);
-		sendEventSelf(forwardBackboneBuilder);
+		setUpRelationship(circleBuilder);
+	}
+
+	private void revokeParentRelationship() {
+		BbRevokerAgent bbRevokerAgent = new BbRevokerAgent(myAddress(), _backboneParent);
+		sendLanPacket(bbRevokerAgent);
+	}
+
+	private boolean hasParentNode() {
+		return _backboneParent != null;
+	}
+
+	private void setUpRelationship(BbCircleBuilderAgent circleBuilder) {
+		_backboneParent = circleBuilder.getSender().getId();
+	}
+
+	@SuppressWarnings("unused")
+	private void process(BbRevokerAgent revokerAgent) {
+		Simulation.Log.RemovedFromBackbone(getNode());
+
+		if (hasParentNode()) {
+			revokeParentRelationship();
+		}
 	}
 
 	@SuppressWarnings("unused")
 	private void process(BbCircleRootFinderAgent rootFinderAgent) {
-		Simulation.Log.state("Visited by agent", rootFinderAgent.getIdentifier(), getNode());
+		Simulation.Log.VisitedByAgent(rootFinderAgent.getIdentifier(), getNode());
 
 		if (rootFinderAgent.electsMe(getNode())) {
-
 			BbCircleBuilderAgent circleBuilder = rootFinderAgent.createBuilder();
-			Simulation.Log.state("MAC_Circle Node", circleBuilder.getIdentifier(), getNode());
+			setCircleNodeForAgent(circleBuilder);
 
 			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), circleBuilder);
 			sendEventSelf(forwardBackboneBuilder);
@@ -436,6 +470,11 @@ public class CircularBackbone_MAC extends MACLayer {
 			WakeUpCall broadcastBbBuilderAgent = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), rootFinderAgent);
 			sendEventSelf(broadcastBbBuilderAgent);
 		}
+	}
+
+	private void setCircleNodeForAgent(BbCircleBuilderAgent circleBuilder) {
+		_circleNodeForAgent = circleBuilder;
+		Simulation.Log.MacCircleNode(circleBuilder.getIdentifier(), getNode());
 	}
 
 	@SuppressWarnings("unused")
@@ -508,6 +547,8 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	public void process(DisseminateAgent disseminate) {
+		_backboneChild = disseminate.getReceiver();
+
 		MACAgent agent = disseminate.getAgent();
 
 		NodeId chosenCandidate = this.getBestCandidate(agent);

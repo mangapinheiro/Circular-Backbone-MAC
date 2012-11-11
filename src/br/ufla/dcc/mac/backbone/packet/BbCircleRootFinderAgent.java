@@ -9,7 +9,7 @@ import br.ufla.dcc.mac.backbone.CircularBackbone_MAC;
 public class BbCircleRootFinderAgent extends ElectorAgent {
 
 	private final int _radius;
-	private static final int DEFAULT_TOLERANCE = 20;
+	private static final int DEFAULT_TOLERANCE = 10;
 
 	// TODO - Make this configurable
 	private final double _tolerance = DEFAULT_TOLERANCE;
@@ -35,7 +35,7 @@ public class BbCircleRootFinderAgent extends ElectorAgent {
 
 	public boolean electsMe(Node node) {
 		if (getDistanceFromRadius(node) < _tolerance) {
-
+			return true;
 		}
 
 		return false;

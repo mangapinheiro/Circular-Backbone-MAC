@@ -49,6 +49,22 @@ public class Simulation {
 			}
 			SimulationManager.logNodeState(forNode.getId(), name, "int", String.valueOf(value));
 		}
+
+		public static void VisitedByAgent(int identifier, Node node) {
+			Simulation.Log.state("Visited by agent", identifier, node);
+		}
+
+		public static void MacCircleNode(int identifier, Node node) {
+			Simulation.Log.state("MAC_Circle Node", identifier, node);
+		}
+
+		public static void CircleClosedInNode(Node node) {
+			Simulation.Log.state("Circle Closed in Node", 8, node);
+		}
+
+		public static void RemovedFromBackbone(Node node) {
+			Simulation.Log.state("Removed From Backbone", 9, node);
+		}
 	}
 
 	public static final class Get {
