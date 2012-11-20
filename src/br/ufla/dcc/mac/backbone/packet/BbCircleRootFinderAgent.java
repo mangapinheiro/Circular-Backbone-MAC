@@ -5,6 +5,7 @@ import br.ufla.dcc.grubix.simulator.LayerType;
 import br.ufla.dcc.grubix.simulator.NodeId;
 import br.ufla.dcc.grubix.simulator.node.Node;
 import br.ufla.dcc.mac.backbone.CircularBackbone_MAC;
+import br.ufla.dcc.mac.backbone.Schedule;
 
 public class BbCircleRootFinderAgent extends ElectorAgent {
 
@@ -41,7 +42,7 @@ public class BbCircleRootFinderAgent extends ElectorAgent {
 		return false;
 	}
 
-	public BbCircleBuilderAgent createBuilder() {
-		return new BbCircleBuilderAgent(getSender(), getReceiver(), _radius);
+	public BbCircleBuilderAgent createBuilderWithSchedule(Schedule creatorSchedule, double circleSchedulesDelay) {
+		return new BbCircleBuilderAgent(getSender(), getReceiver(), _radius, creatorSchedule, circleSchedulesDelay);
 	}
 }

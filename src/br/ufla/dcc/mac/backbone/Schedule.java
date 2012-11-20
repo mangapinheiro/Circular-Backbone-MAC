@@ -55,6 +55,9 @@ public class Schedule {
 
 	public double getDelay(double currentTime) {
 		double delayCorrection = currentTime - _creationTime;
+		if (delayCorrection < 0) {
+			delayCorrection += _delay;
+		}
 		delayCorrection %= _delay;
 		return _delay - delayCorrection;
 	}

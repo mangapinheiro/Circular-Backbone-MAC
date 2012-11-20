@@ -21,7 +21,6 @@ import br.ufla.dcc.grubix.simulator.event.StartSimulation;
 import br.ufla.dcc.grubix.simulator.event.TrafficGeneration;
 import br.ufla.dcc.grubix.simulator.event.WakeUpCall;
 import br.ufla.dcc.grubix.simulator.kernel.Configuration;
-import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.grubix.simulator.node.ApplicationLayer;
 import br.ufla.dcc.grubix.simulator.node.Node;
 import br.ufla.dcc.mac.packet.BbBuilderAgentPacket;
@@ -202,7 +201,7 @@ public class CircularBackboneNode extends ApplicationLayer {
 		}
 
 		this.setOnBackbone(true);
-		SimulationManager.logNodeState(this.getId(), "BackBone", "int", builderAgent.getIdentity().toString());
+		Simulation.Log.state("BackBone", builderAgent.getIdentity(), getNode());
 
 		_parent = builderAgent.getSender().getId();
 
@@ -256,7 +255,7 @@ public class CircularBackboneNode extends ApplicationLayer {
 
 		AgentPacket agent = requestPacket.getAgent();
 
-		SimulationManager.logNodeState(this.getId(), "Visited", "int", agent.getIdentity().toString());
+		Simulation.Log.state("Visited", agent.getIdentity(), getNode());
 
 		GoodnessPacket gnessPkt = new GoodnessPacket(this.sender, requestPacket.getSender().getId(), requestPacket.getAgent(),
 				this.getGoodnes(requestPacket));

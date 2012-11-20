@@ -27,7 +27,6 @@ import br.ufla.dcc.grubix.simulator.event.StartSimulation;
 import br.ufla.dcc.grubix.simulator.event.TrafficGeneration;
 import br.ufla.dcc.grubix.simulator.event.WakeUpCall;
 import br.ufla.dcc.grubix.simulator.kernel.Configuration;
-import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.grubix.simulator.node.ApplicationLayer;
 import br.ufla.dcc.mac.packet.BbBuilderAgentPacket;
 import br.ufla.dcc.mac.packet.BbCandidatesGoodnessRequestPacket;
@@ -38,6 +37,7 @@ import br.ufla.dcc.packet.AgentPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.BbSyncDirection;
 import br.ufla.dcc.utils.NeighborGoodness;
+import br.ufla.dcc.utils.Simulation;
 
 public class RegularNode extends ApplicationLayer {
 
@@ -99,16 +99,16 @@ public class RegularNode extends ApplicationLayer {
 	public void processEvent(StartSimulation start) {
 		// if (this.node.getId().asInt() == 1) // If I'm THE ONE
 
-		SimulationManager.logNodeState(this.getId(), "Goodness", "float", this.goodness.toString());
+		Simulation.Log.state("Goodness", this.goodness, getNode());
 
 		if (this.verifyBorder(this.node.getPosition()) && !this.isThereARoot()) {
 			this.cascadeOrder = 1;
 			this.setRoot();
-			SimulationManager.logNodeState(this.getId(), "SinkNode", "float", "0");
+			Simulation.Log.state("SinkNode", 0.0f, getNode());
 
 			sinkNodeId = this.getId();
 
-			SimulationManager.logNodeState(this.getId(), "BackBone", "int", BackboneNodeState.IS_BACKBONE + "");
+			Simulation.Log.state("BackBone", BackboneNodeState.IS_BACKBONE, getNode());
 
 			CascadingSyncWUC cswuc = new CascadingSyncWUC(sender, 100);
 			sendEventSelf(cswuc);
@@ -238,7 +238,7 @@ public class RegularNode extends ApplicationLayer {
 		}
 
 		this.setOnBackbone(true);
-		SimulationManager.logNodeState(this.getId(), "BackBone", "int", builderAgent.getIdentity().toString());
+		Simulation.Log.state("BackBone", builderAgent.getIdentity(), getNode());
 
 		this.parent = builderAgent.getSender().getId();
 
@@ -275,7 +275,7 @@ public class RegularNode extends ApplicationLayer {
 			this.sendPacket(agent);
 		} else {
 			this.setOnBackbone(false);
-			SimulationManager.logNodeState(this.getId(), "BackBone", "int", BackboneNodeState.ERROR + "");
+			Simulation.Log.state("BackBone", BackboneNodeState.ERROR, getNode());
 			agent.removeHop();
 
 			RefuseAgentPacket rPkt = new RefuseAgentPacket(this.sender, this.parent, agent);
@@ -298,7 +298,7 @@ public class RegularNode extends ApplicationLayer {
 
 		this.activeAgents.add(agent.getIdentity());
 
-		SimulationManager.logNodeState(this.getId(), "Visited", "int", agent.getIdentity().toString());
+		Simulation.Log.state("Visited", agent.getIdentity(), getNode());
 
 		GoodnessPacket gnessPkt = new GoodnessPacket(this.sender, requestPacket.getSender().getId(), requestPacket.getAgent(),
 				this.getGoodnes(requestPacket));
@@ -371,7 +371,7 @@ public class RegularNode extends ApplicationLayer {
 			this.sendPacket(agent);
 		} else {
 			this.setOnBackbone(false);
-			SimulationManager.logNodeState(this.getId(), "BackBone", "int", BackboneNodeState.ERROR + "");
+			Simulation.Log.state("BackBone", BackboneNodeState.ERROR, getNode());
 			agent.removeHop();
 
 			if (getSender().getId() == sinkNodeId) {
@@ -430,7 +430,7 @@ public class RegularNode extends ApplicationLayer {
 		CascadePacket packet = pkt;
 		if (this.cascadeOrder > packet.getHopCounter() + 1) {
 			this.cascadeOrder = packet.getHopCounter() + 1;
-			SimulationManager.logNodeState(this.getNode().getId(), "Cascade", "int", this.cascadeOrder.toString());
+			Simulation.Log.state("Cascade", this.cascadeOrder, getNode());
 			CascadingWUC cswuc = new CascadingWUC(sender, Math.random() * 100);
 			sendEventSelf(cswuc);
 

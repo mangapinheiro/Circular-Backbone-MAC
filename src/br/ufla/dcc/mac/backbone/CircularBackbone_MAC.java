@@ -461,7 +461,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		Simulation.Log.VisitedByAgent(rootFinderAgent.getIdentifier(), getNode());
 
 		if (rootFinderAgent.electsMe(getNode())) {
-			BbCircleBuilderAgent circleBuilder = rootFinderAgent.createBuilder();
+			BbCircleBuilderAgent circleBuilder = rootFinderAgent.createBuilderWithSchedule(__currentSchedule, __timing.getAwakeCycleSize() * 2);
 			setCircleNodeForAgent(circleBuilder);
 
 			WakeUpCall forwardBackboneBuilder = new FindAgentTarget(sender, __timing.getAwakeCycleSize(), circleBuilder);
@@ -474,6 +474,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private void setCircleNodeForAgent(BbCircleBuilderAgent circleBuilder) {
 		_circleNodeForAgent = circleBuilder;
+		followSchedule(circleBuilder.getScheduleForCurrentHop());
 		Simulation.Log.MacCircleNode(circleBuilder.getIdentifier(), getNode());
 	}
 
@@ -1024,7 +1025,7 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void findMainSchedule() {
 		int neighborsCount = _knownNeighbors.get(_mainSchedule).size();
 		for (Schedule sch : _schedules) {
-			if (_knownNeighbors.get(sch).size() > neighborsCount) {
+			if (_knownNeighbors.get(sch) != null && _knownNeighbors.get(sch).size() > neighborsCount) {
 				_mainSchedule = sch;
 			}
 		}

@@ -8,7 +8,8 @@ import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.grubix.simulator.node.Node;
 
 public class Simulation {
-	private static String[] ignoredLogs = new String[] { "PKT TYPE", "Schedule", "NumberOfSchedule", "Goodness" };
+	private static String[] ignoredLogs = new String[] { "PKT TYPE", "Schedule", "NumberOfSchedules", "DistanceFromCenter", "CenterNode", "Goodness",
+			"BackBone", "Paquet sent", "Discovering", "Margin node", "NumberOfKnownNeighbors", "Margin with schedule" };
 	private static ArrayList<String> ignoredLogsList = new ArrayList<String>();
 
 	static {
