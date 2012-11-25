@@ -9,7 +9,7 @@ public class MACAgent extends WlanFramePacket {
 
 	private static int __lastId = 0;
 	private final Integer _id;
-	private int _hops = 0;
+	private int _hops = 1;
 	private final int _hopsEquality;
 
 	public MACAgent(Address sender, NodeId receiver, PacketType type, double signalStrength) {

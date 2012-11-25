@@ -6,7 +6,6 @@ import br.ufla.dcc.grubix.simulator.NodeId;
 import br.ufla.dcc.grubix.simulator.node.Node;
 import br.ufla.dcc.mac.backbone.CircularBackbone_MAC;
 import br.ufla.dcc.mac.backbone.Schedule;
-import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 
 public class BbCircleBuilderAgent extends ElectorAgent {
 
@@ -45,8 +44,7 @@ public class BbCircleBuilderAgent extends ElectorAgent {
 	}
 
 	private Schedule getScheduleForHop(double hop) {
-		return new Schedule(new BbMacTiming().getAwakeCycleSize() * 2 * getHops() + _creatorSchedule.getCreationTime() + hop * _circleSchedulesDelay,
-				_creatorSchedule.getDelay());
+		return new Schedule(_creatorSchedule.getCreationTime() + (hop * _circleSchedulesDelay), _creatorSchedule.getDelay());
 	}
 
 	public Schedule getScheduleForPreviousHop() {

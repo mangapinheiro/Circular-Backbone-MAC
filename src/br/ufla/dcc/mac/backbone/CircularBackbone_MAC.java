@@ -1560,7 +1560,7 @@ public class CircularBackbone_MAC extends MACLayer {
 		WakeUpCall wakeUp = new WakeUpWUC(myAddress(), delayToWakeUpInSteps, schedule);
 		sendEventSelf(wakeUp);
 		double delayToSleepInSteps = delayToWakeUpInSteps - __timing.getEntireCycleSize() + __timing.getAwakeCycleSize();
-		if (delayToSleepInSteps > 0) {
+		if (delayToSleepInSteps > 0) {// TODO - Think seriously about removing this call to sleep
 			scheduleGoSleep(delayToSleepInSteps);
 		}
 	}

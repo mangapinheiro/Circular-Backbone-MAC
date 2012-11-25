@@ -1,5 +1,7 @@
 package br.ufla.dcc.mac.backbone;
 
+import br.ufla.dcc.mac.backbone.util.BbMacTiming;
+
 public class Schedule {
 
 	private static int __id = 0;
@@ -54,12 +56,8 @@ public class Schedule {
 	}
 
 	public double getDelay(double currentTime) {
-		double delayCorrection = currentTime - _creationTime;
-		if (delayCorrection < 0) {
-			delayCorrection += _delay;
-		}
-		delayCorrection %= _delay;
-		return _delay - delayCorrection;
+		double entireCycleSize = new BbMacTiming().getEntireCycleSize();
+		return entireCycleSize - ((currentTime - _creationTime) % entireCycleSize);
+		// TODO - Check the signal inside the parenthesis, if changed to plus, the backbone synchronizes backward
 	}
-
 }
