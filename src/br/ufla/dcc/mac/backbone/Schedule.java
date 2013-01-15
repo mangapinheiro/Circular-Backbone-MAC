@@ -58,6 +58,5 @@ public class Schedule {
 	public double getDelay(double currentTime) {
 		double entireCycleSize = new BbMacTiming().getEntireCycleSize();
 		return entireCycleSize - ((currentTime - _creationTime) % entireCycleSize);
-		// TODO - Check the signal inside the parenthesis, if changed to plus, the backbone synchronizes backward
 	}
 }

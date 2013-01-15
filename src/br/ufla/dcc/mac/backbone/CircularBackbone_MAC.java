@@ -475,6 +475,11 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void setCircleNodeForAgent(BbCircleBuilderAgent circleBuilder) {
 		_circleNodeForAgent = circleBuilder;
 		followSchedule(circleBuilder.getScheduleForCurrentHop());
+
+		if (circleBuilder.getHops() > 1) {
+			followSchedule(circleBuilder.getScheduleForPreviousHop());
+		}
+
 		Simulation.Log.MacCircleNode(circleBuilder.getIdentifier(), getNode());
 	}
 
