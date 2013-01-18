@@ -23,17 +23,21 @@ import br.ufla.dcc.grubix.simulator.event.WakeUpCall;
 import br.ufla.dcc.grubix.simulator.kernel.Configuration;
 import br.ufla.dcc.grubix.simulator.node.ApplicationLayer;
 import br.ufla.dcc.grubix.simulator.node.Node;
+import br.ufla.dcc.mac.backbone.CircularBackbone_MAC;
 import br.ufla.dcc.mac.packet.BbBuilderAgentPacket;
 import br.ufla.dcc.mac.packet.BbCandidatesGoodnessRequestPacket;
 import br.ufla.dcc.mac.packet.GoodnessPacket;
 import br.ufla.dcc.mac.packet.RefuseAgentPacket;
 import br.ufla.dcc.mac.test.packet.InfiniteForwardPacket;
+import br.ufla.dcc.mac.test.packet.ThroughoutPacket;
+import br.ufla.dcc.mac.test.util.GlobalEventDispatcher;
+import br.ufla.dcc.mac.test.util.GlobalEventListener;
 import br.ufla.dcc.packet.AgentPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
 
-public class CircularBackboneNode extends ApplicationLayer {
+public class CircularBackboneNode extends ApplicationLayer implements GlobalEventListener {
 
 	private static Node __centerNode;
 
@@ -86,8 +90,9 @@ public class CircularBackboneNode extends ApplicationLayer {
 
 	@Override
 	public void processEvent(StartSimulation start) {
-		// if (this.node.getId().asInt() == 1) // If I'm THE ONE
-
+		if (this.node.getId().asInt() == 1) {// If I'm THE ONE
+			GlobalEventDispatcher.getDispatcher().registerForNotifications(CircularBackbone_MAC.class, this);
+		}
 		Simulation.Log.state("Goodness", _goodness, getNode());
 
 		if (verifyCenter(this.node.getPosition()) && !isThereACenterNode()) {
@@ -345,4 +350,22 @@ public class CircularBackboneNode extends ApplicationLayer {
 	public void setOnBackbone(boolean onBackbone) {
 		_onBackbone = onBackbone;
 	}
+
+	@Override
+	public void didReceiveGlobalNotification(Object sender, Object notification) {
+		ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender());
+		sendPacket(throughoutPacket);
+		System.out.println("Sending throughout packet!");
+	}
+
+	public void process(ThroughoutPacket throughoutPacket) {
+		if (getNode() == throughoutPacket.getDestinationNode()) {
+			System.out.println("Throughout packet reachedt its destination");
+			return;
+		}
+
+		throughoutPacket.findNextTarget(getNode());
+		sendPacket(throughoutPacket);
+	}
+
 }

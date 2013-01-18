@@ -67,6 +67,7 @@ import br.ufla.dcc.mac.backbone.packet.SchedulePacket;
 import br.ufla.dcc.mac.backbone.state.AbstractNodeState;
 import br.ufla.dcc.mac.backbone.state.NodeState;
 import br.ufla.dcc.mac.backbone.state.StateFactory;
+import br.ufla.dcc.mac.backbone.util.BackboneNotifications;
 import br.ufla.dcc.mac.backbone.util.BbMacTiming;
 import br.ufla.dcc.mac.backbone.wakeupcall.BroadcastScheduleDelayed;
 import br.ufla.dcc.mac.backbone.wakeupcall.CTSFrameStartWUC;
@@ -83,6 +84,7 @@ import br.ufla.dcc.mac.packet.AckPacket;
 import br.ufla.dcc.mac.packet.CTSPacket;
 import br.ufla.dcc.mac.packet.DistanceFromCenterPacket;
 import br.ufla.dcc.mac.packet.RTSPacket;
+import br.ufla.dcc.mac.test.util.GlobalEventDispatcher;
 import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
@@ -421,6 +423,9 @@ public class CircularBackbone_MAC extends MACLayer {
 	@SuppressWarnings("unused")
 	private void process(BbCircleBuilderAgent circleBuilder) {
 		if (hasParentNode()) {
+
+			GlobalEventDispatcher.getDispatcher().postNotification(this, BackboneNotifications.DID_FINISH_BACKBONE_BUILDING_NOTIFICATION);
+
 			revokeParentRelationship();
 			Simulation.Log.CircleClosedInNode(getNode());
 		} else {
