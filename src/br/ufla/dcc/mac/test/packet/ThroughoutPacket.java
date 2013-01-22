@@ -11,32 +11,32 @@ import br.ufla.dcc.grubix.simulator.node.Node;
 
 public class ThroughoutPacket extends Packet {
 
-	private Node _destinationNode;
-	private final Node _originNode;
-	private double _distance;
+	private NodeId _destinationNode;
 
 	public ThroughoutPacket(Address origin) {
 		super(origin, (NodeId) null);
 
 		SortedMap<NodeId, Node> allNodes = SimulationManager.getAllNodes();
-		_originNode = allNodes.get(origin.getId());
+		Node originNode = allNodes.get(origin.getId());
 
 		Collection<Node> values = allNodes.values();
 
+		double distance = 0;
+
 		for (Node node : values) {
 			if (_destinationNode == null) {
-				_destinationNode = node;
-				_distance = _originNode.getPosition().getDistance(_destinationNode.getPosition());
+				_destinationNode = node.getId();
+				distance = originNode.getPosition().getDistance(node.getPosition());
 			} else {
-				double distanceFromOrigin = _originNode.getPosition().getDistance(node.getPosition());
-				if (distanceFromOrigin > _distance) {
-					_destinationNode = node;
-					_distance = distanceFromOrigin;
+				double distanceFromOrigin = originNode.getPosition().getDistance(node.getPosition());
+				if (distanceFromOrigin > distance) {
+					_destinationNode = node.getId();
+					distance = distanceFromOrigin;
 				}
 			}
 		}
 
-		findNextTarget(_originNode);
+		findNextTarget(originNode);
 	}
 
 	public void findNextTarget(Node currentNode) {
@@ -44,12 +44,14 @@ public class ThroughoutPacket extends Packet {
 		Node nextNode = null;
 		double nextDistance = Double.MAX_VALUE;
 
+		Node destinationNode = getDestinationNode();
+
 		for (Node neighbor : currentNode.getNeighbors()) {
 			if (nextNode == null) {
 				nextNode = neighbor;
-				nextDistance = _destinationNode.getPosition().getDistance(neighbor.getPosition());
+				nextDistance = destinationNode.getPosition().getDistance(neighbor.getPosition());
 			} else {
-				double distanceFromDestination = _destinationNode.getPosition().getDistance(neighbor.getPosition());
+				double distanceFromDestination = destinationNode.getPosition().getDistance(neighbor.getPosition());
 
 				if (distanceFromDestination < nextDistance) {
 					nextNode = neighbor;
@@ -63,6 +65,7 @@ public class ThroughoutPacket extends Packet {
 	}
 
 	public Node getDestinationNode() {
-		return _destinationNode;
+		SortedMap<NodeId, Node> allNodes = SimulationManager.getAllNodes();
+		return allNodes.get(_destinationNode);
 	}
 }

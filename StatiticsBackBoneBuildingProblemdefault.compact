@@ -1,4 +1,4 @@
-##ShoX statistics file, created Fri Jan 18 00:02:49 BRST 2013
+##ShoX statistics file, created Tue Jan 22 06:40:15 BRST 2013
 st id1 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x1002.0 y0
@@ -34999,7 +34999,7 @@ st id197 lMAC axtime ayDropped+Packets+%2F+s x175002.0 y0
 st id198 lMAC axtime ayDropped+Packets+%2F+s x175002.0 y0
 st id199 lMAC axtime ayDropped+Packets+%2F+s x175002.0 y0
 st id200 lMAC axtime ayDropped+Packets+%2F+s x175002.0 y0
-st id1 lNET axtime ayHop+Count x175520.02948534134 y1.0
+st id1 lNET axtime ayHop+Count x175520.03353963658 y1.0
 st id1 lMAC axtime ayDropped+Packets+%2F+s x176002.0 y0
 st id2 lMAC axtime ayDropped+Packets+%2F+s x176002.0 y0
 st id3 lMAC axtime ayDropped+Packets+%2F+s x176002.0 y0

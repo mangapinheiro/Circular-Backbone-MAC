@@ -1104,7 +1104,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			throw new LayerException("MacModule of Node " + id + " received unexpected wakeup call: " + wuc.getClass().getName());
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new LayerException("MacModule of Node " + id + "received wakeup call " + wuc.getClass().getName());
+			throw new LayerException("MacModule of Node " + id + " received wakeup call " + wuc.getClass().getName());
 		}
 	}
 
