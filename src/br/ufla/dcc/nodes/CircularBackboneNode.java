@@ -364,8 +364,7 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 			return;
 		}
 
-		##### Create new packet here
-		throughoutPacket.findNextTarget(getNode());
-		sendPacket(throughoutPacket);
+		ThroughoutPacket forwardPacket = throughoutPacket.createForwardPacket(getNode());
+		sendPacket(forwardPacket);
 	}
 }

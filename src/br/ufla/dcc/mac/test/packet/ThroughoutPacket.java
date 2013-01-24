@@ -39,7 +39,11 @@ public class ThroughoutPacket extends Packet {
 		findNextTarget(originNode);
 	}
 
-	public void findNextTarget(Node currentNode) {
+	private ThroughoutPacket(Address origin, NodeId nextNode) {
+		super(origin, nextNode);
+	}
+
+	private void findNextTarget(Node currentNode) {
 
 		Node nextNode = null;
 		double nextDistance = Double.MAX_VALUE;
@@ -60,12 +64,21 @@ public class ThroughoutPacket extends Packet {
 			}
 		}
 
-		reset();
 		setReceiver(nextNode.getId());
 	}
 
 	public Node getDestinationNode() {
 		SortedMap<NodeId, Node> allNodes = SimulationManager.getAllNodes();
 		return allNodes.get(_destinationNode);
+	}
+
+	public ThroughoutPacket createForwardPacket(Node currentNode) {
+		ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender(), null);
+
+		throughoutPacket._destinationNode = _destinationNode;
+
+		throughoutPacket.findNextTarget(currentNode);
+
+		return throughoutPacket;
 	}
 }
