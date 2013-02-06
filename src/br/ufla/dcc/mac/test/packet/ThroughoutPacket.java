@@ -4,10 +4,12 @@ import java.util.Collection;
 import java.util.SortedMap;
 
 import br.ufla.dcc.grubix.simulator.Address;
+import br.ufla.dcc.grubix.simulator.LayerType;
 import br.ufla.dcc.grubix.simulator.NodeId;
 import br.ufla.dcc.grubix.simulator.event.Packet;
 import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.grubix.simulator.node.Node;
+import br.ufla.dcc.mac.backbone.CircularBackbone_MAC;
 
 public class ThroughoutPacket extends Packet {
 
@@ -51,6 +53,20 @@ public class ThroughoutPacket extends Packet {
 		Node destinationNode = getDestinationNode();
 
 		for (Node neighbor : currentNode.getNeighbors()) {
+
+			CircularBackbone_MAC circularMacLayer = (CircularBackbone_MAC) neighbor.getLayer(LayerType.MAC);
+
+			if (circularMacLayer.getBackboneParent() == neighbor.getId() || circularMacLayer.getBackboneChild() == neighbor.getId()) {
+				double neighborDistanceFromDestination = destinationNode.getPosition().getDistance(neighbor.getPosition());
+				double myDistanceFromDestination = destinationNode.getPosition().getDistance(currentNode.getPosition());
+
+				if (neighborDistanceFromDestination < myDistanceFromDestination) {
+					nextNode = neighbor;
+					nextDistance = neighborDistanceFromDestination;
+					break;
+				}
+			}
+
 			if (nextNode == null) {
 				nextNode = neighbor;
 				nextDistance = destinationNode.getPosition().getDistance(neighbor.getPosition());

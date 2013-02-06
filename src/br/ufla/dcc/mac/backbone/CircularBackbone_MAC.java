@@ -245,7 +245,7 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	private PacketType __frameFor;
 
-	private boolean _willReceiveData;
+	private Schedule _willReceiveDataOnSchedule;
 
 	private CTSPacket _ctsToSend;
 
@@ -292,6 +292,8 @@ public class CircularBackbone_MAC extends MACLayer {
 
 	@Override
 	protected void processEvent(StartSimulation start) {
+		Simulation.Log.state("NODE_ID", getNode().getId().asInt(), getNode());
+
 		Address thisAddress = new Address(id, LayerType.MAC);
 		StatisticLogRequest slr = new StatisticLogRequest(thisAddress, getConfig().getSimulationSteps(1), DROPS_PER_SECOND);
 		sendEventSelf(slr);
@@ -544,17 +546,23 @@ public class CircularBackbone_MAC extends MACLayer {
 	private void process(DataFrameStartWUC event) {
 		__frameFor = PacketType.DATA;
 
-		if (!_willReceiveData && !_willSendData) {
+		if (!willReceiveData() && !willReceiveDataOnOtherSchedule() && !_willSendData) {
 			goSleepNow();
 		} else {
 			scheduleGoSleep(__timing.getAwakeCycleSize());
 		}
-
-		if (_willSendData) { // TODO - Improve these conditionals
+		// TODO - Improve these conditionals
+		if (_willSendData) {
 			startCarrierSense(__timing.getDifs(), __timing.getRandomContentionTime());
 		}
+	}
 
-		_willSendData = _willReceiveData = false;
+	private boolean willReceiveData() {
+		return _willReceiveDataOnSchedule != null && _willReceiveDataOnSchedule == __currentSchedule;
+	}
+
+	private boolean willReceiveDataOnOtherSchedule() {
+		return _willReceiveDataOnSchedule != null && _willReceiveDataOnSchedule != __currentSchedule;
 	}
 
 	public void process(DisseminateAgent disseminate) {
@@ -654,11 +662,15 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
+		_willReceiveDataOnSchedule = null;
+
 		if (_waitingForSleepTime == wakeUp) {
 			setNodeState(NodeState.SLEEPING);
 			// _nodeState = new Sleeping();
 		}
 	}
+
+	// the node is receiving wakeup wuc twice (for normal and backbone sckedules) and going to sleep wrong time
 
 	private boolean isInDiscoveryMode() {
 		return __discoveryMode;
@@ -735,7 +747,9 @@ public class CircularBackbone_MAC extends MACLayer {
 
 				applyBitrate(packet, -1);
 				preparePacketToBeSent(packet);
+				_currentOutPacket = packet;
 				sendPacket(packet);
+				_willSendData = false;
 
 				if (_pendingACK = packet.isAckRequested()) {
 
@@ -780,29 +794,18 @@ public class CircularBackbone_MAC extends MACLayer {
 
 			if (retryCount <= _maxRetryCount) {
 				_currentOutPacket.setRetryCount(retryCount);
-				calcBackoffTime(0.0);
 				_currentOutPacket.setReadyForTransmission(true);
 				_currentOutPacket.reset(); // prepare the packet for resending
 											// ##
 				applyBitrate(_currentOutPacket, -1);
 
-				// enforce recalculation of a random backoff, since a collision
-				// may have happened.
-
-				if (_immediateSend || (_backoffTime <= 0.0)) {
-					setBackoffTime();
-				}
-
-				// +++++++++++++ trySend(7); // #7#
 			} else {
 				Packet llP = _currentOutPacket.getEnclosedPacket();
 
 				if (llP != null) {
 					sendEventUp(new TransmissionFailedEvent(sender, llP));
 				}
-				_currentOutPacket = null;
 				this._droppedPackets++;
-				// +++++++++++++ trySend(8); // #8#
 			}
 		} else {
 			if (_currentOutPacket != null) {
@@ -810,10 +813,10 @@ public class CircularBackbone_MAC extends MACLayer {
 					_currentOutPacket.getRaPolicy().processSuccess();
 					_currentCW = 0;
 				}
-				_currentOutPacket = null;
 			}
-			// +++++++++++++ trySend(9); // #9#
 		}
+
+		_currentOutPacket = null;
 	}
 
 	/**
@@ -940,7 +943,7 @@ public class CircularBackbone_MAC extends MACLayer {
 			return;
 		}
 
-		_willReceiveData = true;
+		_willReceiveDataOnSchedule = __currentSchedule;
 
 		CTSPacket cts = new CTSPacket(myAddress(), rts.getSender().getId());
 		applyDefaultBitrate(cts);
@@ -1559,7 +1562,11 @@ public class CircularBackbone_MAC extends MACLayer {
 	}
 
 	private void scheduleGoSleep(double delayInSteps) {
-		WakeUpCall goSleep = new GoSleepWUC(myAddress(), delayInSteps);
+		if (willReceiveDataOnOtherSchedule()) {
+			return;
+		}
+
+		WakeUpCall goSleep = new GoSleepWUC(myAddress(), delayInSteps, __currentSchedule);
 		_waitingForSleepTime = goSleep;
 		sendEventSelf(goSleep);
 	}
@@ -1734,5 +1741,13 @@ public class CircularBackbone_MAC extends MACLayer {
 		}
 
 		return false;
+	}
+
+	public NodeId getBackboneParent() {
+		return _backboneParent;
+	}
+
+	public NodeId getBackboneChild() {
+		return _backboneChild;
 	}
 }
