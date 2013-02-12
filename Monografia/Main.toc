@@ -1,0 +1,29 @@
+\select@language {brazil}
+\contentsline {chapter}{\numberline {1}Introdu\IeC {\c c}\IeC {\~a}o}{1}{chapter.1}
+\contentsline {section}{\numberline {1.1}Motiva\IeC {\c c}\IeC {\~a}o}{2}{section.1.1}
+\contentsline {section}{\numberline {1.2}Objetivos}{2}{section.1.2}
+\contentsline {chapter}{\numberline {2}Redes de Sensores Sem Fio}{3}{chapter.2}
+\contentsline {section}{\numberline {2.1}Caracter\IeC {\'\i }sticas de RSSF}{5}{section.2.1}
+\contentsline {section}{\numberline {2.2}Protocolos em RSSF}{7}{section.2.2}
+\contentsline {subsection}{\numberline {2.2.1}Camada f\IeC {\'\i }sica (\textit {physical layer})}{7}{subsection.2.2.1}
+\contentsline {subsection}{\numberline {2.2.2}Camada de liga\IeC {\c c}\IeC {\~a}o de dados(\textit {Data Link Layer}) }{8}{subsection.2.2.2}
+\contentsline {subsubsection}{Protocolos de controle de acesso ao meio}{8}{section*.4}
+\contentsline {subsection}{\numberline {2.2.3}Camada de rede( \textit {Network layer})}{8}{subsection.2.2.3}
+\contentsline {subsection}{\numberline {2.2.4}Camada de transporte}{9}{subsection.2.2.4}
+\contentsline {subsection}{\numberline {2.2.5}Camada de aplica\IeC {\c c}\IeC {\~a}o}{9}{subsection.2.2.5}
+\contentsline {section}{\numberline {2.3}Controle de acesso ao meio}{10}{section.2.3}
+\contentsline {subsection}{\numberline {2.3.1}Padr\IeC {\~o}es de comunica\IeC {\c c}\IeC {\~a}o em RSSFs}{11}{subsection.2.3.1}
+\contentsline {subsection}{\numberline {2.3.2}Classifica\IeC {\c c}\IeC {\~a}o de Protocolos de Controle de Acesso ao Meio}{11}{subsection.2.3.2}
+\contentsline {subsubsection}{Protocolos de atribui\IeC {\c c}\IeC {\~a}o fixa}{12}{section*.5}
+\contentsline {subsubsection}{Protocolos de atribui\IeC {\c c}\IeC {\~a}o por demanda}{12}{section*.6}
+\contentsline {subsubsection}{Protocolos de acesso aleat\IeC {\'o}rio}{13}{section*.7}
+\contentsline {section}{\numberline {2.4}Auto-Organiza\IeC {\c c}\IeC {\~a}o em RSSF}{13}{section.2.4}
+\contentsline {subsection}{\numberline {2.4.1}Protocolos MAC auto-organiz\IeC {\'a}veis}{14}{subsection.2.4.1}
+\contentsline {subsubsection}{WiseMAC}{14}{section*.8}
+\contentsline {subsubsection}{S-MAC}{15}{section*.9}
+\contentsline {chapter}{\numberline {3}Metodologia}{17}{chapter.3}
+\contentsline {chapter}{\numberline {4}Resultados esperados}{18}{chapter.4}
+\contentsline {subsubsection}{Algoritmo de elei\IeC {\c c}\IeC {\~a}o:}{19}{section*.10}
+\contentsline {subsubsection}{Algoritmo para sincroniza\IeC {\c c}\IeC {\~a}o:}{19}{section*.11}
+\contentsline {subsubsection}{Resultados de testes:}{19}{section*.12}
+\contentsline {chapter}{\numberline {5}Cronograma}{20}{chapter.5}

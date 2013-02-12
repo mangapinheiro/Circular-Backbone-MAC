@@ -1,0 +1,353 @@
+% This file was created with JabRef 2.5.
+% Encoding: UTF8
+
+@ARTICLE{Akyildiz2002,
+  author = {Akyildiz, I. F. and Su, Weilian and Sankarasubramaniam, Y. and Cayirci,
+	E.},
+  title = {A survey on sensor networks},
+  journal = {Communications Magazine, IEEE},
+  year = {2002},
+  volume = {40},
+  pages = {102--114},
+  number = {8},
+  month = {November},
+  abstract = {The advancement in wireless communications and electronics has enabled
+	the development of low-cost sensor networks. The sensor networks
+	can be used for various application areas (e.g., health, military,
+	home). For different application areas, there are different technical
+	issues that researchers are currently resolving. The current state
+	of the art of sensor networks is captured in this article, where
+	solutions are discussed under their related protocol stack layer
+	sections. This article also points out the open research issues and
+	intends to spark new interests and developments in this field.},
+  citeulike-article-id = {452397},
+  citeulike-linkout-0 = {http://dx.doi.org/10.1109/MCOM.2002.1024422},
+  citeulike-linkout-1 = {http://ieeexplore.ieee.org/xpls/abs\_all.jsp?arnumber=1024422},
+  day = {07},
+  doi = {10.1109/MCOM.2002.1024422},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/ASurveyOnSensorNetwork.pdf:PDF},
+  keywords = {complex\_network, sensor\_network, survey},
+  posted-at = {2008-12-11 05:28:54},
+  priority = {2},
+  url = {http://dx.doi.org/10.1109/MCOM.2002.1024422}
+}
+
+@MISC{Arms_frequencyagile,
+  author = {S. W. Arms and C. P. Townsend and D. L. Churchill and M. J. Hamel
+	and J. H. Galbreath and S. W. Mundell},
+  title = {Frequency Agile Wireless Sensor Networks},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/Frequency Agile Wireless Sensor Networks.pdf:PDF}
+}
+
+@ARTICLE{Baccelli06analoha,
+  author = {François Baccelli and Bartłomiej Błaszczyszyn and Paul Mühlethaler},
+  title = {An Aloha protocol for multihop mobile wireless networks},
+  journal = {IEEE Transactions on Information Theory},
+  year = {2006},
+  volume = {52},
+  pages = {421--436},
+  file = {:home/inpheller/Documents/Latex/ArticleBib/An Aloha Protocol for Multihop Mobile Wireless Networks.pdf:PDF}
+}
+
+@INPROCEEDINGS{Buettner2006,
+  author = {Buettner, Michael and Yee, Gary V. and Anderson, Eric and Han, Richard},
+  title = {X-MAC: a short preamble MAC protocol for duty-cycled wireless sensor
+	networks},
+  booktitle = {SenSys '06: Proceedings of the 4th international conference on Embedded
+	networked sensor systems},
+  year = {2006},
+  pages = {307--320},
+  address = {New York, NY, USA},
+  publisher = {ACM},
+  doi = {http://doi.acm.org/10.1145/1182807.1182838},
+  file = {:E\:\\Latex\\ArticleBib\\GRUB\\MAC\\RSSF_MAC\\XMAC_SenSys_2006.pdf:PDF},
+  isbn = {1-59593-343-3},
+  location = {Boulder, Colorado, USA}
+}
+
+@MISC{Chandra_2wireless,
+  author = {Ajay Chandra and V. Gummalla and John and O. Limb and Georgia Institute
+	and Of Technology},
+  title = {2 WIRELESS MEDIUM ACCESS CONTROL PROTOCOLS}
+}
+
+@ARTICLE{Demirkol2006,
+  author = {Demirkol, I. and Ersoy, C. and Alagoz, F.},
+  title = {MAC protocols for wireless sensor networks: a survey},
+  journal = {Communications Magazine, IEEE},
+  year = {2006},
+  volume = {44},
+  pages = {115--121},
+  number = {4},
+  abstract = {Wireless sensor networks are appealing to researchers due to their
+	wide range of application potential in areas such as target detection
+	and tracking, environmental monitoring, industrial process monitoring,
+	and tactical systems. However, low sensing ranges result in dense
+	networks and thus it becomes necessary to achieve an efficient medium-access
+	protocol subject to power constraints. Various medium-access control
+	(MAC) protocols with different objectives have been proposed for
+	wireless sensor networks. In this article, we first outline the sensor
+	network properties that are crucial for the design of MAC layer protocols.
+	Then, we describe several MAC protocols proposed for sensor networks,
+	emphasizing their strengths and weaknesses. Finally, we point out
+	open research issues with regard to MAC layer design.},
+  citeulike-article-id = {877753},
+  citeulike-linkout-0 = {http://ieeexplore.ieee.org/xpls/abs\_all.jsp?arnumber=1632658},
+  comment = {This paper surveys varius MAC protocols proposed for Wireless Sensor
+	Networks. Protocols: S-MAC: problem with broadcast packets WiseMAC:
+	Two communication channels: 1) Data : TDMA 2) control:CSMA Not coordinated
+	sleep schedule problem with broadcast packets TRAMA,NAMA : TDMA SIFT
+	DMAC T-MAC (see paper) DSMAC},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/MACProtocolsForWirelessSensorNetwork_ASurvey.PDF:PDF},
+  keywords = {jmac, mac, sensor, survey},
+  posted-at = {2007-02-15 17:33:18},
+  priority = {0},
+  url = {http://ieeexplore.ieee.org/xpls/abs\_all.jsp?arnumber=1632658}
+}
+
+@ARTICLE{Dressler2008,
+  author = {Dressler, Falko},
+  title = {A study of self-organization mechanisms in ad hoc and sensor networks},
+  journal = {Comput. Commun.},
+  year = {2008},
+  volume = {31},
+  pages = {3018--3029},
+  number = {13},
+  address = {Newton, MA, USA},
+  doi = {http://dx.doi.org/10.1016/j.comcom.2008.02.001},
+  file = {:home/inpheller/Documents/Latex/ArticleBib/GRUB/self-organization/Dressler2008.pdf:PDF},
+  issn = {0140-3664},
+  publisher = {Butterworth-Heinemann}
+}
+
+@ARTICLE{10.1109/ISCC.2002.1021748,
+  author = {Amre El-Hoiydi},
+  title = {Spatial TDMA and CSMA with Preamble Sampling for Low Power Ad Hoc
+	Wireless Sensor Networks},
+  journal = {Computers and Communications, IEEE Symposium on},
+  year = {2002},
+  volume = {0},
+  pages = {685},
+  address = {Los Alamitos, CA, USA},
+  doi = {http://doi.ieeecomputersociety.org/10.1109/ISCC.2002.1021748},
+  issn = {1530-1346},
+  publisher = {IEEE Computer Society}
+}
+
+@ARTICLE{El-Hoiydi2004,
+  author = {A. El-Hoiydi and J.-D. Decotignie},
+  title = {WiseMAC: an ultra low power MAC protocol for the downlink of infrastructure
+	wireless sensor networks},
+  journal = {Computers and Communications, IEEE Symposium on},
+  year = {2004},
+  volume = {1},
+  pages = {244-251},
+  address = {Los Alamitos, CA, USA},
+  doi = {http://doi.ieeecomputersociety.org/10.1109/ISCC.2004.1358412},
+  file = {:home/inpheller/Documents/Latex/ArticleBib/GRUB/MAC/RSSF_MAC/read/WiseMAC_2004.pdf:PDF},
+  isbn = {0-7803-8623-X},
+  publisher = {IEEE Computer Society}
+}
+
+@MISC{Guerses2005,
+  author = {Eren Gürses},
+  title = {Network Layer in Wireless Sensor Networks},
+  month = {3},
+  year = {2005},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/Network Layer in Wireless Sensor Networks.pdf:PDF},
+  owner = {inpheller},
+  timestamp = {2010.06.14}
+}
+
+@ARTICLE{Halkes:2005,
+  author = {Gertjan Halkes and Tijs van Dam and Koen Langendoen},
+  title = {Comparing Energy-saving {MAC} Protocols For Wireless Sensor Networks},
+  journal = {Special issue of Kluwer {MONET} on {WLAN} Optimization at the {MAC}
+	and Network Levels},
+  year = {2005},
+  volume = {10},
+  pages = {783--791},
+  number = {5},
+  month = {oct},
+  doi = {10.1007/s11036-005-3371-x},
+  file = {:home/inpheller/Documents/Latex/ArticleBib/GRUB/MAC/RSSF_MAC/SMAC_BMAC_Compara_Langendoen_2005.pdf:PDF},
+  group = {PDS},
+  issn = {1383-469X (Paper) 1572-8153 (Online)},
+  topic = {Sensor Networks},
+  url = {http://www.st.ewi.tudelft.nl/~koen/papers/mac-comp.pdf}
+}
+
+@PROCEEDINGS{Hoblos2000,
+  title = {Optimal design of fault tolerant sensor networks},
+  year = {2000},
+  author = {Hoblos,G.andStaroswiecki,M.andAitouche,A.},
+  booktitle = {Control Applications, 2000. Proceedings of the 2000 IEEE International
+	Conferenceon},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/OtimalDesignOfFaultTolerantSensorNetworks.pdf:PDF},
+  pages = {467--472}
+}
+
+@MISC{Jiang_apredictive,
+  author = {Zhifeng Jiang and Yuheng Li and Victor C.M. Leung},
+  title = {A Predictive Demand Assignment Multiple Access Protocol for Broadband
+	Satellite Networks Supporting Internet Applications}
+}
+
+@BOOK{Karl2005,
+  title = {Protocols and Architectures for Wireless Sensor Networks},
+  publisher = {John Wiley \& Sons},
+  year = {2005},
+  author = {Karl, Holger and Willig, Andreas},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/GRUB/Protocols & architectures for wireless sensor networks.pdf:PDF},
+  isbn = {0470095105}
+}
+
+@INPROCEEDINGS{Kulkarni2004,
+  author = {S. S. Kulkarni},
+  title = {TDMA Services for Sensor Networks},
+  booktitle = {Proc. 24th Int’l. Conf. Distrib. Comp. Sys. Wksps., Mar.},
+  year = {2004},
+  pages = {pp. 604-09},
+  file = {:home/inpheller/Documents/Latex/ArticleBib/TDMAServiceForSensorNetworks.pdf:PDF},
+  owner = {Windows 7},
+  timestamp = {2010.06.07}
+}
+
+@ARTICLE{Kumar06mediumaccess,
+  author = {Sunil Kumar and Vineet S. Raghavan and Jing Deng},
+  title = {Medium access control protocols for ad hoc wireless networks: a survey},
+  journal = {Journal},
+  year = {2006},
+  volume = {4},
+  pages = {326--358},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/Medium Access Control protocols for ad hoc        wireless networks\: A survey.pdf:PDF}
+}
+
+@INPROCEEDINGS{Mainwaring2002,
+  author = {Mainwaring, Alan and Culler, David and Polastre, Joseph and Szewczyk,
+	Robert and Anderson, John},
+  title = {Wireless sensor networks for habitat monitoring},
+  booktitle = {WSNA '02: Proceedings of the 1st ACM international workshop on Wireless
+	sensor networks and applications},
+  year = {2002},
+  pages = {88--97},
+  address = {New York, NY, USA},
+  publisher = {ACM},
+  doi = {http://doi.acm.org/10.1145/570738.570751},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/WirelessSensorNetworksForHabitatMonitoring.pdf:PDF},
+  isbn = {1-58113-589-0},
+  location = {Atlanta, Georgia, USA}
+}
+
+@ARTICLE{Pottie2000,
+  author = {Pottie, G. J. and Kaiser, W. J.},
+  title = {Wireless integrated network sensors},
+  journal = {Commun. ACM},
+  year = {2000},
+  volume = {43},
+  pages = {51--58},
+  number = {5},
+  address = {New York, NY, USA},
+  doi = {http://doi.acm.org/10.1145/332833.332838},
+  issn = {0001-0782},
+  publisher = {ACM}
+}
+
+@ARTICLE{Romer2004,
+  author = {R\"{o}mer, K. and Mattern, F.},
+  title = {The design space of wireless sensor networks},
+  journal = {IEEE Wireless Communications},
+  year = {2004},
+  volume = {11},
+  pages = {54--61},
+  number = {6},
+  month = {Dezember},
+  citeulike-article-id = {2316263},
+  doi = {10.1109/MWC.2004.1368897},
+  file = {:E\:\\Latex\\ArticleBib\\TheDesignSpaceOfWirelessSensorNetworks.PDF:PDF;Sensornetze\\\\\\"{U}bersicht\\\\The Design Space of Wireless Sensor Networks.pdf:Sensornetze\\\\\\"{U}bersicht\\\\The Design Space of Wireless Sensor Networks.pdf:PDF},
+  keywords = {network, overview, sensor},
+  posted-at = {2008-01-31 20:28:08},
+  priority = {0}
+}
+
+@INCOLLECTION{RaSaGu2008-InCol,
+  author = {Md. Abdur Rahman and Abdulmotaleb {El~Saddik} and Wail Gueaieb},
+  title = {Wireless Sensor Network Transport Layer: State of the Art},
+  booktitle = {Sensors: Advancement In Modeling, Design Issues, Fabrication And
+	Practical Applications},
+  publisher = {Springer-Verlag},
+  year = {2008},
+  editor = {Subhas Mukhopadhyay and Ray Huang},
+  series = {Lecture Notes In Electrical Engineering},
+  month = {April},
+  note = {(To~appear)},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/Wireless Sensor Network Transport Layer\: State of Art.pdf:PDF}
+}
+
+@ARTICLE{Schurgers2002,
+  author = {Schurgers, Curt and Tsiatsis, Vlasios and Ganeriwal, Saurabh and
+	Srivastava, Mani},
+  title = {Optimizing Sensor Networks in the Energy-Latency-Density Design Space},
+  journal = {IEEE Transactions on Mobile Computing},
+  year = {2002},
+  volume = {1},
+  pages = {70--80},
+  number = {1},
+  address = {Piscataway, NJ, USA},
+  doi = {http://dx.doi.org/10.1109/TMC.2002.1011060},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/OptimizingSensorNetworksInTheEnergi-Latency-DensityDesignSpace.pdf:PDF},
+  issn = {1536-1233},
+  publisher = {IEEE Educational Activities Department}
+}
+
+@ARTICLE{Srisathapornphat2001,
+  author = {Chavalit Srisathapornphat and Chaiporn Jaikaeo and Chien-chung Shen},
+  title = {Sensor Information Networking Architecture and Applications},
+  journal = {IEEE Personal Communications},
+  year = {2001},
+  volume = {8},
+  pages = {52--59},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/SensorInformationNetworkArchitectureAndApplication.pdf:PDF}
+}
+
+@ARTICLE{Tilak02ataxonomy,
+  author = {Sameer Tilak and Nael B. Abu-ghazaleh and Wendi Heinzelman},
+  title = {A Taxonomy of Wireless Micro-Sensor Network Models},
+  journal = {ACM Mobile Computing and Communications Review},
+  year = {2002},
+  volume = {6},
+  pages = {28--36},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/A Taxonomy of Wireless Micro-Sensor Network Models.pdf:PDF}
+}
+
+@INPROCEEDINGS{Ye2002,
+  author = {Wei Ye and John Heidemann and Deborah Estrin},
+  title = {An Energy-Efficient MAC protocol for Wireless Sensor Networks},
+  booktitle = {Proceedings of the {IEEE} Infocom},
+  year = {2002},
+  pages = {1567--1576},
+  address = {New York, NY, USA},
+  month = {June},
+  organization = {USC/Information Sciences Institute},
+  publisher = {{IEEE}},
+  file = {:/home/inpheller/Documents/Latex/ArticleBib/An Energy-Efficient MAC Protocol For Wireless Sensor Networks.pdf:PDF},
+  keywords = {s-mac, energy-aware mac},
+  otherurl = {http://www.isi.edu/~weiye/pub/smac_infocom.pdf},
+  pdfurl = {http://www.isi.edu/~johnh/PAPERS/Ye02a.pdf},
+  url = {http://www.isi.edu/~johnh/PAPERS/Ye02a.html}
+}
+
+@MISC{Zhong2001,
+  author = {Lizhi Charlie Zhong and Jan Rabaey and Chunlong Guo and Rahul Shah},
+  title = {Data Link Layer Design For Wireless Sensor Networks},
+  year = {2001}
+}
+
+@comment{jabref-meta: selector_publisher:}
+
+@comment{jabref-meta: selector_author:}
+
+@comment{jabref-meta: selector_journal:}
+
+@comment{jabref-meta: selector_keywords:}
+

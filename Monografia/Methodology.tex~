@@ -1,0 +1,7 @@
+\chapter{Metodologia}
+
+O trabalho pode ser classificado como pesquisa aplicada por tratar com problemas reais. Espera-se como resultado um protocolo que reduza o tempo de trasmissão de informação em redes de sensores sem fio sem redução significativa da vida útil da rede. 
+
+É também pesquisa exploratória pois parte da solução proposta advém da utilização de algorítmos existente para solução de alguns dos problemaa (auto-organização na formação de estruturas dentro da rede). Possui também características que permitem definí-la como experimental, pois serão utilizadas simulações para verificação e avaliação do protocolo proposto.
+
+Além disso se caracteriza ainda como pesquisa quantitativa pela utilização de erão testes, simulações e avaliações baseadas em dados quantitativos resultantes desses testes como tempo de propagação de mensagens entre pontos distintos da rede etc.

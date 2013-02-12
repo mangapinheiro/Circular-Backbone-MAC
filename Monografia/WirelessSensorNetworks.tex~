@@ -1,0 +1,5 @@
+\section{Redes de Sensores Sem Fio}
+
+Graças aos avanços tecnológicos na área de comunicação sem fio e de eletrônicos tem sido cada vez mais fácil desenvolver nós sensores multifuncionais de baixo custo e consumo de energia capazes de se comunicar a curtas distâncias. Disso surge a ideia da criação de redes de sensores sem fio.
+
+Redes de sensores sem fio(RSSF) são redes compostas por um grande número de nós sensores densamente distribuídos dentro de um fenômeno ou próximo a ele, cujas posições não precisam ser predeterminadas e que trabalham de forma cooperativa para a realização de tarefas. Isso possibilita a distribuição aleatória em regiões inacessíveis, porém também torna necessária a criação de protocolos e algoritmos com capacidade de auto organização\cite{Akyildiz2002}.

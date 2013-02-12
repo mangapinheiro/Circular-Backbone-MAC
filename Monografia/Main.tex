@@ -1,0 +1,165 @@
+\documentclass{uflamon}          % classe base para a monografia
+
+%==============================================================================
+% Utilizacao de pacotes
+\usepackage[T1]{fontenc}         % usa fontes postscript com acentos
+%\usepackage{times}              % usa fonte times como default
+\usepackage[brazil]{babel}       % hifenização e títulos em português do Brasil
+\usepackage[utf8]{inputenc}     % permite edição direta com acentos
+\usepackage{amsmath}             % pacote da AMS para Matemática Avançada
+\usepackage{amssymb}             % símbolos extras da AMS
+\usepackage{latexsym}            % símbolos extras do LaTeX
+\usepackage{graphicx}            % para inserção de gráficos
+\usepackage{listings}            % para inserção de código
+\usepackage{fancyvrb}            % para inserção de saídas de comandos
+
+\usepackage{colortbl} % frescuras em tabelas
+\newcolumntype{L}{|>{\columncolor[gray]{0.9}}l|} %multicolunas boiolas
+
+% cores para os links cruzados
+\usepackage{color}
+\definecolor{rltred}{rgb}{0.2,0,0}
+\definecolor{rltgreen}{rgb}{0,0.2,0}
+\definecolor{rltblue}{rgb}{0,0,0.2}
+
+\usepackage[colorlinks=true,
+	        urlcolor=rltblue,       % \href{...}{...} external (URL)
+   	     filecolor=rltgreen,     % \href{...} local file
+      	  linkcolor=rltred,       % \ref{...} and \pageref{...}
+     		  citecolor=rltgreen,
+    		  pdftitle={Simulação de algoritmo auto organizado para protocolo MAC em redes de sensores sem fio},
+			  pdfauthor={Bruno Vitor Almeida Pinheiro},
+           pdfsubject={Esse texto apresenta e discute protocolos de controle de acesso ao meio auto-organizados.},
+           pdfkeywords={Protocolo de controle de acesso ao meio. 2. Auto-organização. 3. Redes de sensores sem fio. 4. RSSF. 5. MAC.}%
+]{hyperref} % para referência cruzadas
+%\usepackage{hyperref}            % para referência cruzadas
+%\usepackage{subfigure}           % figuras dentro de figuras
+\usepackage{caption2}            % remodelando o formato dos títulos de 
+                                 % tabelas e figuras
+
+% configuração padrão do listings   
+\lstset{
+   language=Java,
+   extendedchars=true,
+   tabsize=3,
+   basicstyle=\footnotesize\ttfamily,
+   stringstyle=\em,
+   showstringspaces=false 
+}
+
+% para referências de acordo com a ABNT
+% precisa instalar o abntex antes!!!
+% http://abntex.codigolivre.org.br/
+% comente se pretende usar outro padrão
+% % % % Uncomment% % % % \usepackage[alf,abnt-etal-cite=3,abnt-etal-list=0,abnt-etal-text=emph]{abntcite}
+
+
+% redefinindo formatação de títulos de tabelas e figuras
+\renewcommand{\captionfont}{\footnotesize}
+\renewcommand{\captionlabelfont}{\footnotesize \bfseries}
+
+
+%==============================================================================
+% para os fãs do Word, descomente as linhas abaixo
+%\sloppy %mais espaço entre as linhas
+%\usepackage{identfirst} %identando-se a primeira linha de cada seção
+
+
+%==============================================================================
+% definido comandos na monografia - não é necessário na sua monografia 
+% apenas para exemplificar a definição de novos comandos
+\newcommand{\defs}[1]{\textsl{#1}}
+
+
+% Especificando hifenizações que por ventura LaTeX não saiba fazer
+% Por padrão 99,9% dos termos em português devem ser hifenizados corretamente.
+\hyphenation{hardware software Li-nux am-bien-te diag-nos-ti-car coor-de-na-ção so-li-ci-ta-ção con-tro-le ou-tros
+FAE-PE Recovery TelEduc Williams}
+
+%==============================================================================
+% Dados da monografia, capa: autor, titulo, banca, etc... - SUBSTITUA DE ACORDO
+%==============================================================================
+\author{Bruno Vitor Almeida Pinheiro}
+\title{Simulação de algoritmo auto organizado para protocolo MAC em redes de sensores sem fio}
+\date{2010}
+\tipo{Monografia de Graduação  apresentada ao Departamento de Ciência da Computação 
+da Universidade Federal de Lavras como parte das exigências do curso de 
+Sistemas de Informação para obtenção do título de Bacharel em Sistemas de Informação.}
+\areaconcentracao{Protocolos de Controle de Acesso ao Meio em Redes de Sensores Sem Fio}
+\orientador{Prof. Tales}
+% \coorientador{Prof. Silvino Santiago} % comente se não tiver coorientador
+%\coorientadordois{Prof. Tiagão Meganha} % comente se não tiver coorientador
+\bancaum{Prof. Juliana Galvani Greghi}
+\bancadois{Prof. Marluce Rodrigues Pereira} % comente se sua banca tiver só um professor
+%\bancatres{Fulanim de Sicrano}% comente se sua banca tiver só um professor
+\defesa{25 de junho de 2010}
+\palchaves{Protocolo de controle de acesso ao meio; Auto-organização; Redes de sensores sem fio; RSSF; MAC.}
+\keywords{Medium access control protocol; Self-organization; Wireless sensor networks; WSN; MAC.}
+%==============================================================================
+
+%% dados para ficha catalográfica
+% primeiro autor
+\fcautor{Pinheiro, Bruno Vitor Almeida}
+% autores, separados por vírgula
+\fcautores{}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% dados para ficha catalográfica conforme modelo da BC-UFLA 
+\fccatalogacao{Protocolo de controle de acesso ao meio. 2. Auto-organização. 3. Redes de sensores sem fio. 4. RSSF. 5. MAC. I. Pinheiro, B.V. A. II. Universidade Federal de Lavras.
+  III. Fundação de Apoio ao Ensino, Pesquisa e Extensão.  
+  IV. Simulação de algoritmo auto organizado para protocolo MAC em redes de sensores sem fio}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+
+% classificação de acordo com a CDD, comente se não tiver isso.
+\fcclasi{003.5}
+\fcclasii{005.43}
+
+\begin{document}
+\maketitle
+
+\dedic{Dedico esta monografia...}     % Dedicatórias
+\thanks{Agradeço aos...}         % Agradecimentos
+
+\pagestyle{ufla}
+\pagenumbering{roman}
+
+\tableofcontents                           % Sumário}
+\listoffigures                             % Lista de Figuras
+\listoftables                              % Lista de Tabelas
+
+\abstract{Redes de sensores sem fio (RSSF) tem sido cada vez mais utilizadas em variados tipos de aplicações. Crescentes avanços tecnológicos nas áreas de sensores, radiotransmissores e outros equipamentos utilizados na construções de nós sensores dos quais são compostas essas redes tem reduzido a cada dia o custo de produção, bem como o de aquisição, desses equipamentos. Isso faz com que seja mais vantajoso a substituição dos nós que deixam de ser funcionais. Devido a isso e ao fato de que, em geral, nós sensores são alimentados por baterias e são dispostos muitas vezes em regiões que inviabilizam a substituição dessas baterias é importante desenvolver mecanismos que promovam um aumento na vida útil desses nós e, consequentemente, da rede como um todo. Os maiores consumidores de energia em nós sensores são os radiotransmissores. Através da utilização de protocolos de controle de acesso ao meio é possível manter controle sobre o ligamento e desligamento desses dispositivos, além de aumentar a eficiência de sua utilização por meio da eliminação ou diminuição da ocorrência de eventos que culminem na necessidade de retransmissão (por exemplo colisão de pacotes), dentre outros benefícios. Este trabalho contém informações gerais sobre as características das RSSF e cada uma das camadas da pilha de protocolos utilizados nesse tipo de rede. São apresentadas também informações relacionadas aos padrões de comunicação presentes nesse tipo de rede, bem como uma classificação dos protocolos MAC quanto à distribuição dos recursos para os nós, contendo exemplos de cada tipo de protocolo. E ao final são apresentados exemplos de protocolos MAC auto-organizados, seus mecanismos, suas vantagens e desvantagens.}%
+%
+{Wireless sensor networks (WSN) have been increasingly used in various types of applications. Increasing technological advancements in the areas of sensors, radio transceivers and other equipment used in the construction of sensor nodes that compose such networks has reduced production cost as well as the acquisition cost of such equipment. This makes it more interesting to replace the nodes that are no longer functional. Because of this and the fact that, in general, sensor nodes are powered by batteries and are often arranged in regions that prevent the replacement of these batteries, is important to develop mechanisms that promote an increase in the lifetime of these nodes and thus the network as a whole. The biggest consumers of energy in sensor nodes are the radio transceivers. Through the use of medium access control protocols (MAC) you can maintain control over the states (turned on/turned off) of such devices. In addition, it's possible to increasing the efficiency of its use through the elimination or reduction of the occurrence of events that culminate in the need for retransmission (e.g. collision of packets), and so forth. This work contains general information about the characteristics of wireless sensor networks and every layer of the protocol stack used in this type of network. It's also presented information related to communication patterns present in this type of network, and a classification of MAC protocols on the distribution of resources for the nodes, containing examples of each type of protocol. And at the end there are examples of self-organized MAC protocols, its mechanisms, advantages and disadvantages.}                         % Resumo (digite aqui o resumo)
+
+\clearpage
+
+%\pagestyle{ufla}
+\pagenumbering{arabic}
+
+%==============================================================================
+% incluindo os capitulos
+
+\include{Introduction}
+\include{TheoreticalReferences}
+\include{Methodology}
+\include{ExpectedResults}
+
+%==============================================================================
+% Incluindo bibliografia
+%\bibliographystyle{plain}             % estilo para labels em numeros
+%\bibliographystyle{alpha}             % estilo para labels em iniciais
+\bibliographystyle{abnt-alf}           % estilo para referências usando ABNT, 
+                                       % precisa instalar o abntex para usar!!!
+
+%inclui Referências Bibliográficas
+\bibliography{Bibliography}
+
+
+%==============================================================================
+% Incluindo anexos numerados com letras maiusculas.
+\appendix
+% \include{apendice}
+
+%==============================================================================
+% Fim do texto
+\end{document}
