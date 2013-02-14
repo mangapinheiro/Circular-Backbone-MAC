@@ -36,6 +36,7 @@ import br.ufla.dcc.packet.AgentPacket;
 import br.ufla.dcc.utils.BackboneNodeState;
 import br.ufla.dcc.utils.NeighborGoodness;
 import br.ufla.dcc.utils.Simulation;
+import br.ufla.dcc.utils.TestDataManager;
 
 public class CircularBackboneNode extends ApplicationLayer implements GlobalEventListener {
 
@@ -360,6 +361,10 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 
 	public void process(ThroughoutPacket throughoutPacket) {
 		if (getNode() == throughoutPacket.getDestinationNode()) {
+			throughoutPacket.setReceived();
+
+			TestDataManager.getInstance().appendDataFromPacket(throughoutPacket);
+			TestDataManager.getInstance().saveReport();
 			System.out.println("Throughout packet reachedt its destination");
 			return;
 		}

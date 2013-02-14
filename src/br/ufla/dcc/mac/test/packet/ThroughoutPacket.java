@@ -14,9 +14,14 @@ import br.ufla.dcc.mac.backbone.CircularBackbone_MAC;
 public class ThroughoutPacket extends Packet {
 
 	private NodeId _destinationNode;
+	private int _numberOfHops = 1;
+	private double _creationTime;
+	private double _deliveryTime;
 
 	public ThroughoutPacket(Address origin) {
 		super(origin, (NodeId) null);
+
+		_creationTime = SimulationManager.getInstance().getCurrentTime();
 
 		SortedMap<NodeId, Node> allNodes = SimulationManager.getAllNodes();
 		Node originNode = allNodes.get(origin.getId());
@@ -92,9 +97,31 @@ public class ThroughoutPacket extends Packet {
 		ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender(), null);
 
 		throughoutPacket._destinationNode = _destinationNode;
+		throughoutPacket._numberOfHops = _numberOfHops + 1;
+		throughoutPacket._creationTime = _creationTime;
 
 		throughoutPacket.findNextTarget(currentNode);
 
 		return throughoutPacket;
+	}
+
+	public void setReceived() {
+		_deliveryTime = SimulationManager.getInstance().getCurrentTime();
+	}
+
+	public double getDeliveryTime() {
+		return _deliveryTime;
+	}
+
+	public int getNumberOfHops() {
+		return _numberOfHops;
+	}
+
+	public double getCreationTime() {
+		return _creationTime;
+	}
+
+	public double getTotalTime() {
+		return getDeliveryTime() - getCreationTime();
 	}
 }
