@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -21,6 +22,7 @@ import br.ufla.dcc.grubix.simulator.event.StartSimulation;
 import br.ufla.dcc.grubix.simulator.event.TrafficGeneration;
 import br.ufla.dcc.grubix.simulator.event.WakeUpCall;
 import br.ufla.dcc.grubix.simulator.kernel.Configuration;
+import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.grubix.simulator.node.ApplicationLayer;
 import br.ufla.dcc.grubix.simulator.node.Node;
 import br.ufla.dcc.mac.backbone.CircularBackbone_MAC;
@@ -93,6 +95,7 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 	public void processEvent(StartSimulation start) {
 		if (this.node.getId().asInt() == 1) {// If I'm THE ONE
 			GlobalEventDispatcher.getDispatcher().registerForNotifications(CircularBackbone_MAC.class, this);
+			GlobalEventDispatcher.getDispatcher().registerForNotifications(getClass(), this);
 		}
 		Simulation.Log.state("Goodness", _goodness, getNode());
 
@@ -354,9 +357,22 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 
 	@Override
 	public void didReceiveGlobalNotification(Object sender, Object notification) {
-		ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender());
-		sendPacket(throughoutPacket);
-		System.out.println("Sending throughout packet!");
+		Class<? extends Object> senderClass = sender.getClass();
+		if (senderClass.equals(CircularBackbone_MAC.class)) {
+			ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender());
+			sendPacket(throughoutPacket);
+			System.out.println("Sending throughout packet!");
+
+		}
+
+		else if (senderClass.equals(getClass())) {
+
+			sendRandomThroughoutPacket();
+		}
+	}
+
+	public enum TestNotification {
+		DID_RECEIVE_THROUGHOUT_PACKET_NOTIFICATION
 	}
 
 	public void process(ThroughoutPacket throughoutPacket) {
@@ -366,10 +382,43 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 			TestDataManager.getInstance().appendDataFromPacket(throughoutPacket);
 			TestDataManager.getInstance().saveReport();
 			System.out.println("Throughout packet reachedt its destination");
+
+			GlobalEventDispatcher.getDispatcher().postNotification(this, TestNotification.DID_RECEIVE_THROUGHOUT_PACKET_NOTIFICATION);
+
 			return;
 		}
 
 		ThroughoutPacket forwardPacket = throughoutPacket.createForwardPacket(getNode());
 		sendPacket(forwardPacket);
+	}
+
+	private void sendRandomThroughoutPacket() {
+		NodeId randomTarget = chooseRandomTargetForThroughoutPacket();
+		ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender(), randomTarget);
+		sendPacket(throughoutPacket);
+		System.out.println("Sending throughout packet!");
+	}
+
+	private static Random randomizer = new Random(34567890954345678l);
+
+	private NodeId chooseRandomTargetForThroughoutPacket() {
+
+		SortedMap<NodeId, Node> allNodes = SimulationManager.getAllNodes();
+
+		NodeId destination = getId();
+		Object[] keySet = allNodes.keySet().toArray();
+
+		while (destination == getId()) {
+			int index = randomizer.nextInt(allNodes.size());
+			destination = (NodeId) keySet[index];
+		}
+
+		return destination;
+	}
+
+	public static void main(String[] args) {
+		for (int i = 0; i < 10; i++) {
+			System.out.println(randomizer.nextInt(200));
+		}
 	}
 }

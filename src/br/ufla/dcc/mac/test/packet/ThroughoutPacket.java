@@ -19,6 +19,10 @@ public class ThroughoutPacket extends Packet {
 	private double _deliveryTime;
 
 	public ThroughoutPacket(Address origin) {
+		this(origin, null);
+	}
+
+	public ThroughoutPacket(Address origin, NodeId destinationNode) {
 		super(origin, (NodeId) null);
 
 		_creationTime = SimulationManager.getInstance().getCurrentTime();
@@ -28,25 +32,30 @@ public class ThroughoutPacket extends Packet {
 
 		Collection<Node> values = allNodes.values();
 
-		double distance = 0;
+		if (destinationNode == null) {
 
-		for (Node node : values) {
-			if (_destinationNode == null) {
-				_destinationNode = node.getId();
-				distance = originNode.getPosition().getDistance(node.getPosition());
-			} else {
-				double distanceFromOrigin = originNode.getPosition().getDistance(node.getPosition());
-				if (distanceFromOrigin > distance) {
+			double distance = 0;
+
+			for (Node node : values) {
+				if (_destinationNode == null) {
 					_destinationNode = node.getId();
-					distance = distanceFromOrigin;
+					distance = originNode.getPosition().getDistance(node.getPosition());
+				} else {
+					double distanceFromOrigin = originNode.getPosition().getDistance(node.getPosition());
+					if (distanceFromOrigin > distance) {
+						_destinationNode = node.getId();
+						distance = distanceFromOrigin;
+					}
 				}
 			}
+		} else {
+			_destinationNode = destinationNode;
 		}
 
 		findNextTarget(originNode);
 	}
 
-	private ThroughoutPacket(Address origin, NodeId nextNode) {
+	private ThroughoutPacket(Address origin, NodeId nextNode, boolean isInternal) {
 		super(origin, nextNode);
 	}
 
@@ -94,7 +103,7 @@ public class ThroughoutPacket extends Packet {
 	}
 
 	public ThroughoutPacket createForwardPacket(Node currentNode) {
-		ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender(), null);
+		ThroughoutPacket throughoutPacket = new ThroughoutPacket(getSender(), null, true);
 
 		throughoutPacket._destinationNode = _destinationNode;
 		throughoutPacket._numberOfHops = _numberOfHops + 1;
