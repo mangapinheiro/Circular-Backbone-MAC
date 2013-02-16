@@ -89,6 +89,9 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 
 	@Override
 	protected void processEvent(Finalize finalize) {
+		if (getNode().getId().asInt() == 1) {
+			TestDataManager.getInstance().saveReport();
+		}
 	}
 
 	@Override
@@ -380,7 +383,7 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 			throughoutPacket.setReceived();
 
 			TestDataManager.getInstance().appendDataFromPacket(throughoutPacket);
-			TestDataManager.getInstance().saveReport();
+
 			System.out.println("Throughout packet reachedt its destination");
 
 			GlobalEventDispatcher.getDispatcher().postNotification(this, TestNotification.DID_RECEIVE_THROUGHOUT_PACKET_NOTIFICATION);
@@ -399,8 +402,6 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 		System.out.println("Sending throughout packet!");
 	}
 
-	private static Random randomizer = new Random(34567890954345678l);
-
 	private NodeId chooseRandomTargetForThroughoutPacket() {
 
 		SortedMap<NodeId, Node> allNodes = SimulationManager.getAllNodes();
@@ -409,16 +410,11 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 		Object[] keySet = allNodes.keySet().toArray();
 
 		while (destination == getId()) {
-			int index = randomizer.nextInt(allNodes.size());
+			int index = new Random((long) SimulationManager.getInstance().getCurrentTime()).nextInt(allNodes.size());
 			destination = (NodeId) keySet[index];
 		}
 
 		return destination;
 	}
 
-	public static void main(String[] args) {
-		for (int i = 0; i < 10; i++) {
-			System.out.println(randomizer.nextInt(200));
-		}
-	}
 }

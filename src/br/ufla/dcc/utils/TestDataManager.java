@@ -56,6 +56,7 @@ public class TestDataManager {
 				out.append(reportData);
 			}
 
+			_reportData.clear();
 			// Close the output stream
 			out.close();
 		} catch (Exception e) {// Catch exception if any

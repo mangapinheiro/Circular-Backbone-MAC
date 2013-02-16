@@ -42,6 +42,7 @@
                         <param name="standard">g</param>
                         <param name="preamble">short</param>
                         <param name="channelCount">1</param>
+                        <param name="ignoreRadioStateOnNeighborhoodDetection">true</param>
                         <param name="signalStrength">0.0</param>
                         <param name="minSignalStrength">0.0</param>
                         <param name="maxSignalStrength">100.0</param>
@@ -103,5 +104,5 @@
             <targetfile>startpositions.xml</targetfile>
         </generated>
     </positions>
-    <simulationtime stepspersecond="1000" base="seconds">300</simulationtime>
+    <simulationtime stepspersecond="1000" base="seconds">1000</simulationtime>
 </configuration>
