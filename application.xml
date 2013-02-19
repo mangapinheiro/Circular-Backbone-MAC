@@ -104,5 +104,5 @@
             <targetfile>startpositions.xml</targetfile>
         </generated>
     </positions>
-    <simulationtime stepspersecond="1000" base="seconds">1000</simulationtime>
+    <simulationtime stepspersecond="1000" base="seconds">100000</simulationtime>
 </configuration>

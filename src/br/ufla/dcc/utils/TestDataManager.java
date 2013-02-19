@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.mac.test.packet.ThroughoutPacket;
 
 public class TestDataManager {
@@ -71,5 +72,14 @@ public class TestDataManager {
 				.getDestinationNode().getId().asInt(), throughoutPacket.getNumberOfHops(), throughoutPacket.getTotalTime());
 
 		_reportData.add(reportDataFormatted);
+
+		if (_reportData.size() % 10 == 0) {
+			saveReport();
+		}
+
+		if (_reportData.size() == 100) {
+			saveReport();
+			SimulationManager.getInstance().sendSimulationCompletedSignal();
+		}
 	}
 }
