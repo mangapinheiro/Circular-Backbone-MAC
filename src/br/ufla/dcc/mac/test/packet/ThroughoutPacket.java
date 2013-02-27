@@ -17,6 +17,7 @@ public class ThroughoutPacket extends Packet {
 	private int _numberOfHops = 1;
 	private double _creationTime;
 	private double _deliveryTime;
+	private boolean _hasUsedBackbone;
 
 	public ThroughoutPacket(Address origin) {
 		this(origin, null);
@@ -70,11 +71,13 @@ public class ThroughoutPacket extends Packet {
 
 			CircularBackbone_MAC circularMacLayer = (CircularBackbone_MAC) neighbor.getLayer(LayerType.MAC);
 
-			if (circularMacLayer.getBackboneParent() == neighbor.getId() || circularMacLayer.getBackboneChild() == neighbor.getId()) {
+			// TODO - try only with children nodes
+			if (/* circularMacLayer.getBackboneParent() == neighbor.getId() || */circularMacLayer.getBackboneChild() == neighbor.getId()) {
 				double neighborDistanceFromDestination = destinationNode.getPosition().getDistance(neighbor.getPosition());
 				double myDistanceFromDestination = destinationNode.getPosition().getDistance(currentNode.getPosition());
 
 				if (neighborDistanceFromDestination < myDistanceFromDestination) {
+					setHasUsedBackbone(true);
 					nextNode = neighbor;
 					nextDistance = neighborDistanceFromDestination;
 					break;
@@ -132,5 +135,13 @@ public class ThroughoutPacket extends Packet {
 
 	public double getTotalTime() {
 		return getDeliveryTime() - getCreationTime();
+	}
+
+	public boolean hasUsedBackbone() {
+		return _hasUsedBackbone;
+	}
+
+	public void setHasUsedBackbone(boolean hasUsedBackbone) {
+		_hasUsedBackbone = hasUsedBackbone;
 	}
 }

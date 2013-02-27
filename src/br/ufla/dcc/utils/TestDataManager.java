@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import br.ufla.dcc.grubix.simulator.Position;
 import br.ufla.dcc.grubix.simulator.kernel.SimulationManager;
 import br.ufla.dcc.mac.test.packet.ThroughoutPacket;
 
@@ -22,7 +23,7 @@ public class TestDataManager {
 			FileWriter fstream = new FileWriter(_fileName);
 			BufferedWriter out = new BufferedWriter(fstream);
 
-			String columnHeaders = String.format("%s, %s, %s, %s", "Sender", "Receiver", "#hops", "Total Time");
+			String columnHeaders = String.format("%s, %s, %s, %s, %s, %s", "Sender", "Receiver", "Distance", "#hops", "Total Time", "Used Backbone");
 			out.write(columnHeaders);
 			out.close();
 		} catch (Exception e) {
@@ -66,16 +67,19 @@ public class TestDataManager {
 	}
 
 	public void appendDataFromPacket(ThroughoutPacket/* TODO ReportData */throughoutPacket) {
+		Position position = SimulationManager.getAllNodes().get(throughoutPacket.getSender().getId()).getPosition();
+		double distance = position.getDistance(throughoutPacket.getDestinationNode().getPosition());
 
 		// report data format "sender, receiver, #hops, totalTime"
-		String reportDataFormatted = String.format("%d, %d, %d, %f", throughoutPacket.getSender().getId().asInt(), throughoutPacket
-				.getDestinationNode().getId().asInt(), throughoutPacket.getNumberOfHops(), throughoutPacket.getTotalTime());
+		String reportDataFormatted = String.format("%d, %d, %f, %d, %f, %b", throughoutPacket.getSender().getId().asInt(), throughoutPacket
+				.getDestinationNode().getId().asInt(), distance, throughoutPacket.getNumberOfHops(), throughoutPacket.getTotalTime(),
+				throughoutPacket.hasUsedBackbone());
 
 		_reportData.add(reportDataFormatted);
 
-		if (_reportData.size() % 10 == 0) {
-			saveReport();
-		}
+		// if (_reportData.size() % 10 == 0) {
+		// saveReport();
+		// }
 
 		if (_reportData.size() == 100) {
 			saveReport();
