@@ -411,7 +411,7 @@ public class CircularBackboneNode extends ApplicationLayer implements GlobalEven
 		NodeId destination = getId();
 		Object[] keySet = allNodes.keySet().toArray();
 
-		while (destination == getId()) {
+		while (destination == getId() || allNodes.get(destination).getPosition().getXCoord() < allNodes.get(destination).getPosition().getYCoord()) {
 			int index = RANDOMIZER.nextInt(allNodes.size());
 			destination = (NodeId) keySet[index];
 		}
