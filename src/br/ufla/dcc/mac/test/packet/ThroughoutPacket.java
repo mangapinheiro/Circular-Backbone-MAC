@@ -71,18 +71,18 @@ public class ThroughoutPacket extends Packet {
 
 			CircularBackbone_MAC circularMacLayer = (CircularBackbone_MAC) neighbor.getLayer(LayerType.MAC);
 
-			// TODO - try only with children nodes
-			if (/* circularMacLayer.getBackboneParent() == neighbor.getId() || */circularMacLayer.getBackboneChild() == neighbor.getId()) {
-				double neighborDistanceFromDestination = destinationNode.getPosition().getDistance(neighbor.getPosition());
-				double myDistanceFromDestination = destinationNode.getPosition().getDistance(currentNode.getPosition());
-
-				if (neighborDistanceFromDestination < myDistanceFromDestination) {
-					setHasUsedBackbone(true);
-					nextNode = neighbor;
-					nextDistance = neighborDistanceFromDestination;
-					break;
-				}
-			}
+			// // TODO - try only with children nodes
+			// if (/* circularMacLayer.getBackboneParent() == neighbor.getId() || */circularMacLayer.getBackboneChild() == neighbor.getId()) {
+			// double neighborDistanceFromDestination = destinationNode.getPosition().getDistance(neighbor.getPosition());
+			// double myDistanceFromDestination = destinationNode.getPosition().getDistance(currentNode.getPosition());
+			//
+			// if (neighborDistanceFromDestination < myDistanceFromDestination) {
+			// setHasUsedBackbone(true);
+			// nextNode = neighbor;
+			// nextDistance = neighborDistanceFromDestination;
+			// break;
+			// }
+			// }
 
 			if (nextNode == null) {
 				nextNode = neighbor;
